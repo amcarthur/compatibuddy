@@ -35,6 +35,7 @@ function compatibuddy_get_add_filter_function_calls( $plugin, $file ) {
             'plugin' => $plugin,
             'file' => $file,
             'line' => $call['line'],
+            'tag' => $call['args'][0],
             'function_to_add' => $call['args'][1]
         );
 
