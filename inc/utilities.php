@@ -19,6 +19,13 @@
 
 if (!defined('ABSPATH')) die("Forbidden");
 
+use PhpParser\ParserFactory;
+use PhpParser\Error;
+use PhpParser\Node;
+use PhpParser\NodeFinder;
+use PhpParser\PrettyPrinter;
+use PhpParser\NodeDumper;
+
 function compatibuddy_get_plugins() {
 
     $all_plugins = get_plugins();
@@ -73,15 +80,41 @@ function compatibuddy_get_php_files_in_directory( $directory ) {
     return $files;
 }
 
-function compatibuddy_search_file( $file, $pattern ) {
+function compatibuddy_get_function_calls( $file, $function_name ) {
 
     $contents = file_get_contents( $file );
 
-    if ( ! preg_match_all( $pattern, $contents, $matches, PREG_SET_ORDER ) ) {
-        return array();
+    $prettyPrinter = new PrettyPrinter\Standard;
+    $nodeFinder = new NodeFinder;
+    $parser = (new ParserFactory)->create( ParserFactory::PREFER_PHP7 );
+    $function_calls = array();
+    try {
+        $calls = array();
+        $ast = $parser->parse($contents);
+        $calls[] = $nodeFinder->find($ast, function( Node $node ) use( $function_name ) {
+            return $node instanceof Node\Stmt\Expression
+                && $node->expr->name->parts[0] === $function_name;
+        });
+
+        foreach ( $calls as $expressions ) {
+            foreach ( $expressions as $expression ) {
+                $args = array();
+                foreach ( $expression->expr->args as $arg ) {
+                    $args[] = $prettyPrinter->prettyPrint(array($arg));
+                }
+
+                $function_calls[$args[0]] = array(
+                    'args' => $args,
+                    'line' => $expression->getStartLine()
+                );
+            }
+        }
+
+    } catch (Error $error) {
+        return false;
     }
 
-    return $matches;
+    return $function_calls;
 }
 
 function compatibuddy_get_incompatibilities_for_plugin( $incompatibilities, $plugin ) {

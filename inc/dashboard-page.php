@@ -20,19 +20,18 @@
 if (!defined('ABSPATH')) die("Forbidden");
 
 $all_plugins = compatibuddy_get_plugins();
-$plugin_incompatibilities = array();
 
 if ( isset( $_POST['compatibuddy-detect-issues-all'] ) ) {
 
-    $filters = array();
-    $first = null;
-    foreach ( $all_plugins as $id => $plugin ) {
-        if ( is_null ($first) ) $first = $id;
-        compatibuddy_find_add_filters_from_plugin($plugin, $filters);
-    }
-    $possible_incompatibilities = array();
+    $add_filter_tree = compatibuddy_get_add_filter_tree();
+    $possible_incompatibilities = compatibuddy_analyze_filter_tree_with_subject( $add_filter_tree, $all_plugins['compatibuddy/compatibuddy.php'] );
+    print('<pre>' . print_r($possible_incompatibilities, true) . '</pre>');
+    die();
+    /*$possible_incompatibilities = array();
     compatibuddy_analyze_filter_tree_with_subject($filters, $all_plugins['compatibuddy/compatibuddy.php'], $possible_incompatibilities);
-    $plugin_incompatibilities['compatibuddy/compatibuddy.php'][] = compatibuddy_get_incompatibilities_for_plugin($possible_incompatibilities, $all_plugins['compatibuddy/compatibuddy.php']);
+    $plugin_incompatibilities['compatibuddy/compatibuddy.php'] = compatibuddy_get_incompatibilities_for_plugin($possible_incompatibilities, $all_plugins['compatibuddy/compatibuddy.php']);
+    print('<pre>' . print_r($plugin_incompatibilities, true) . '</pre>');
+    die();*/
 
 } else if ( isset( $_POST['compatibuddy-detect-issues-single'] ) ) {
 

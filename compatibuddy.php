@@ -38,12 +38,13 @@ if( !function_exists('compatibuddy_main') ) {
             return;
         }
 
+        require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
         require_once plugin_dir_path( __FILE__ ) . 'inc/utilities.php';
         require_once plugin_dir_path( __FILE__ ) . 'inc/filter-checker.php';
 
         register_activation_hook(__FILE__, 'compatibuddy_activate');
         add_action('admin_menu', 'compatibuddy_add_menu_items');
-        add_filter('bulk_actions-users', 'register_bulk_actions', 999);
+        add_filter('bulk_actions-users', 'register_bulk_actions', PHP_INT_MIN);
     }
 }
 

@@ -19,102 +19,144 @@
 
 if (!defined('ABSPATH')) die("Forbidden");
 
-function compatibuddy_find_add_filters_from_plugin($plugin, &$filters ) {
+require_once 'utilities.php';
 
-    $php_files = compatibuddy_get_php_files_in_directory( $plugin['absolute_directory'] );
-    $pattern = '/add_filter\\s*\\(\\s*(\'|")([a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff\\-]+)\\1\\s*,\\s*(.*?\\)?),?\\s*([0-9]+|PHP_MAX_INT)?\\s*,?\\s*([0-9]+)?\\s*\\)/m';
-    //$pattern = "/add_filter\s*\(\s*('|\")([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\-]+)\1\s*,\s*(.*?\)?),?\s*,?\s*([0-9]+|PHP_MAX_INT)?\s*,?\s*([0-9]+)?\s*\)/m";
-    foreach ( $php_files as $file ) {
-        $results = compatibuddy_search_file( $file, $pattern );
+function compatibuddy_get_add_filter_function_calls( $plugin, $file ) {
 
-        foreach ( $results as $result ) {
+    $function_calls = compatibuddy_get_function_calls( $file, 'add_filter' );
+    $formatted_add_filter_calls = array();
 
-            if ( ! isset( $result[2] ) || ! isset( $result[3] ) ) {
-                continue;
-            }
-
-            $new_entry = array(
-                'plugin' => $plugin,
-                'file' => $file,
-                'function_to_add' => $result[3]
-            );
-
-            if ( isset( $result[4] ) ) {
-                $new_entry['priority'] = $result[4];
-            }
-
-            if ( isset( $result[5] ) ) {
-                $new_entry['accepted_args'] = $result[5];
-            }
-
-
-            $filters[$result[2]][] = $new_entry;
+    foreach ( $function_calls as $call ) {
+        if ( count( $call['args'] ) < 2 ) {
+            continue;
         }
+
+        $entry = array(
+            'plugin' => $plugin,
+            'file' => $file,
+            'line' => $call['line'],
+            'function_to_add' => $call['args'][1]
+        );
+
+        if ( isset($call['args'][2]) ) {
+            $entry['priority'] = $call['args'][2];
+        }
+
+        if ( isset($call['args'][3]) ) {
+            $entry['accepted_args'] = $call['args'][3];
+        }
+
+        $formatted_add_filter_calls[$call['args'][0]][] = $entry;
     }
+
+    return $formatted_add_filter_calls;
 }
 
-function compatibuddy_analyze_filter_tree( $filter_tree, &$possible_incompatibilities ) {
+function compatibuddy_get_add_filters_from_plugin( $plugin ) {
+    $php_files = compatibuddy_get_php_files_in_directory( $plugin['absolute_directory'] );
+    $add_filter_calls = array();
+
+    foreach ( $php_files as $file ) {
+        $calls = compatibuddy_get_add_filter_function_calls( $plugin, $file );
+        if ( ! $calls ) {
+            continue;
+        }
+
+        foreach ( $calls as $tag => $call ) {
+            $add_filter_calls[$tag][$plugin['id']]['files'][$file] = $call;
+        }
+    }
+
+    return $add_filter_calls;
+}
+
+function compatibuddy_get_add_filter_tree() {
+    $all_plugins = compatibuddy_get_plugins();
+    $all_filters = array();
+    foreach ( $all_plugins as $id => $plugin ) {
+        $filters = compatibuddy_get_add_filters_from_plugin( $plugin );
+        foreach ( $filters as $tag => $filter ) {
+            if ( ! isset( $all_filters[$tag] ) ) {
+                $all_filters[$tag] = $filter;
+            } else {
+                $all_filters[$tag] = array_merge($all_filters[$tag], $filter);
+            }
+        }
+    }
+
+    return $all_filters;
+}
+
+function compatibuddy_analyze_add_filter_tree( $add_filter_tree ) {
     // This function is purposefully unoptimized to make it easier to implement further analysis features in the future.
 
-    foreach ( $filter_tree as $tag => $filters ) {
+    $possible_incompatibilities = array();
 
-        if ( count ( $filters ) === 1 ) {
+    foreach ( $add_filter_tree as $tag => $add_filter_calls ) {
+
+        if ( count ( $add_filter_calls ) <= 1 ) {
             continue;
         }
 
         // We have found a tag being filtered in more than one place.
-        foreach ( $filters as $filter ) {
-            $possible_incompatibilities[$tag][] = $filter;
+        foreach ( $add_filter_calls as $plugin_id => $add_filter_call ) {
+            $possible_incompatibilities[$tag][$plugin_id] = $add_filter_call;
         }
     }
+
+    return $possible_incompatibilities;
 }
 
-function compatibuddy_filter_priority_compare($a, $b) {
+function compatibuddy_analyze_filter_tree_with_subject ( $filter_tree, $subject ) {
 
-    if ( ! isset( $a['priority'] ) ) {
-        return -1;
-    }
+    $possible_incompatibilities = compatibuddy_analyze_add_filter_tree( $filter_tree );
 
-    if ( ! isset( $b['priority'] ) ) {
-        return 1;
-    }
+    $filters_overwritten = array();
 
-    if ( $a['priority'] === $b['priority'] ) {
-        return 0;
-    }
+    foreach ( $possible_incompatibilities as $tag => $modules ) {
 
-    return ($a < $b) ? -1 : 1;
-}
+        $priorities = array();
 
-function compatibuddy_analyze_filter_tree_with_subject ( $filter_tree, $subject, &$possible_incompatibilities ) {
+        foreach ( $modules as $module_id => $module ) {
 
-    $possible_incompatibilities_ref = array();
-    compatibuddy_analyze_filter_tree( $filter_tree, $possible_incompatibilities_ref );
+            foreach ( $module['files'] as $file => $calls ) {
 
-    $tag_priorities = array();
+                foreach ( $calls as $call ) {
 
-    foreach ( $possible_incompatibilities_ref as $tag => $filters ) {
+                    if ( $module_id === $subject['id'] ) {
+                        $priorities['subject'] = $call;
+                    }
 
-        foreach ( $filters as $filter ) {
+                    if ( ! isset( $call['priority'] ) ) {
+                        $call['priority'] = 10;
+                    }
 
-            if ( $filter['plugin']['id'] === $subject['id'] ) {
-                $tag_priorities[$tag]['subject'] = $filter;
-            }
+                    if ( $call['priority'] === 'PHP_INT_MAX' ) {
+                        $call['priority'] = PHP_INT_MAX;
+                    } else if ( $call['priority'] === 'PHP_INT_MIN' ) {
+                        $call['priority'] = PHP_INT_MIN;
+                    }
 
-            if ( ! isset( $filter['priority'] ) ) {
-                continue;
-            }
+                    if ( ! is_numeric( $call['priority'] ) ) {
+                        continue;
+                    }
 
-            if ( ! isset( $tag_priorities[$tag]['current_highest_priority_filter'] ) ) {
-                $tag_priorities[$tag]['current_highest_priority_filter'] = $filter;
-            } else if ( $filter['priority'] >= $tag_priorities[$tag]['current_highest_priority_filter']['priority'] ) {
-                $tag_priorities[$tag]['current_highest_priority_filter'] = $filter;
+                    $call['priority'] = (int)$call['priority'];
+
+                    if ( ! isset( $priorities['blame'] ) ) {
+                        $priorities['blame'] = $call;
+                    } else if ( $call['priority'] >= $priorities['blame']['priority'] ) {
+                        $priorities['blame'] = $call;
+                    }
+                }
             }
         }
 
-        if ( isset( $tag_priorities[$tag]['subject'])
-            && $tag_priorities[$tag]['subject']['plugin']['id'] !== $tag_priorities[$tag]['current_highest_priority_filter']['plugin']['id']) {
-            $possible_incompatibilities[$tag] = $tag_priorities[$tag];
+        if ( isset( $priorities['subject'])
+            && $priorities['subject']['plugin']['id'] !== $priorities['blame']['plugin']['id']) {
+            $filters_overwritten[$tag] = $priorities;
         }
     }
+
+    return $filters_overwritten;
 }
