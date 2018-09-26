@@ -88,10 +88,9 @@ function compatibuddy_get_add_filter_tree() {
     return $all_filters;
 }
 
-function compatibuddy_analyze_add_filter_tree( $add_filter_tree ) {
-    // This function is purposefully unoptimized to make it easier to implement further analysis features in the future.
+function compatibuddy_get_shared_filters( $add_filter_tree, $subject = null ) {
 
-    $possible_incompatibilities = array();
+    $shared_filters = array();
 
     foreach ( $add_filter_tree as $tag => $add_filter_calls ) {
 
@@ -101,20 +100,33 @@ function compatibuddy_analyze_add_filter_tree( $add_filter_tree ) {
 
         // We have found a tag being filtered in more than one place.
         foreach ( $add_filter_calls as $plugin_id => $add_filter_call ) {
-            $possible_incompatibilities[$tag][$plugin_id] = $add_filter_call;
+
+            $shared_filters[$tag][$plugin_id] = $add_filter_call;
         }
     }
 
-    return $possible_incompatibilities;
+    if ( ! is_null( $subject ) ) {
+
+        $filtered_filters = array();
+
+        foreach ( array_keys( $shared_filters ) as $key ) {
+
+            if ( array_key_exists( $subject['id'], $shared_filters[$key] ) ) {
+                $filtered_filters[$key] = $shared_filters[$key];
+            }
+        }
+
+        return $filtered_filters;
+    }
+
+    return $shared_filters;
 }
 
-function compatibuddy_analyze_filter_tree_with_subject ( $filter_tree, $subject ) {
-
-    $possible_incompatibilities = compatibuddy_analyze_add_filter_tree( $filter_tree );
+function compatibuddy_overwritten_subject_filters( $filters, $subject ) {
 
     $filters_overwritten = array();
 
-    foreach ( $possible_incompatibilities as $tag => $modules ) {
+    foreach ( $filters as $tag => $modules ) {
 
         $priorities = array();
 
@@ -154,10 +166,22 @@ function compatibuddy_analyze_filter_tree_with_subject ( $filter_tree, $subject 
         }
 
         if ( isset( $priorities['subject'])
+            && isset ( $priorities['blame'] )
             && $priorities['subject']['plugin']['id'] !== $priorities['blame']['plugin']['id']) {
             $filters_overwritten[$tag] = $priorities;
         }
     }
 
     return $filters_overwritten;
+}
+
+function compatibuddy_analyze_filter_tree_with_subject ( $filter_tree, $subject ) {
+
+    $shared_filters = compatibuddy_get_shared_filters( $filter_tree, $subject );
+    $filters_overwritten = compatibuddy_overwritten_subject_filters( $shared_filters, $subject );
+
+    return array(
+        'shared_filters' => $shared_filters,
+        'filters_overwritten' => $filters_overwritten
+    );
 }
