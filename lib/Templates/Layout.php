@@ -1,2 +1,5 @@
-<h1><?=$this->e($title)?></h1>
-<?=$this->section('content')?>
+<div class="wrap">
+    <h1 class="wp-heading-inline"><?php echo esc_html($title); ?></h1>
+    <hr class="wp-header-end">
+    <?php echo $this->section('content') ?>
+</div>

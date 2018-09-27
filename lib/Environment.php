@@ -27,11 +27,13 @@ class Environment {
     private static $store;
 
     protected static $filesToInclude = [
+        'lib/vendor/autoload.php',
+        'lib/Utilities.php',
+        'lib/Scanners/AddFilterScanner.php',
+        'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
+        'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
         'lib/Router.php',
         'lib/Admin.php',
-        'lib/vendor/autoload.php',
-        'lib/utilities.php',
-        'lib/filter-checker.php'
     ];
 
     /**
