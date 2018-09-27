@@ -32,6 +32,7 @@ Text Domain: compatibuddy
 if (!defined('ABSPATH')) die("Forbidden");
 
 require_once('lib/Environment.php');
+require_once('lib/Database.php');
 require_once('lib/Core.php');
 
 use Compatibuddy\Environment;

@@ -8,11 +8,12 @@ namespace Compatibuddy;
  */
 class EnvironmentVariable {
     const PLUGIN_ROOT_DIRECTORY = 0;
-    const PLUGIN_BASENAME = 1;
-    const PLUGIN_FILE_NAME_NO_SUFFIX = 2;
-    const PLUGIN_PAGE_ID = 3;
-    const PLUGIN_BASE_URI = 4;
-    const TEMPLATES_DIRECTORY = 5;
+    const PLUGIN_FILE = 1;
+    const PLUGIN_BASENAME = 2;
+    const PLUGIN_FILE_NAME_NO_SUFFIX = 3;
+    const PLUGIN_PAGE_ID = 4;
+    const PLUGIN_BASE_URI = 5;
+    const TEMPLATES_DIRECTORY = 6;
 }
 
 /**
@@ -28,6 +29,7 @@ class Environment {
 
     protected static $filesToInclude = [
         'lib/vendor/autoload.php',
+        'lib/Database.php',
         'lib/Utilities.php',
         'lib/Scanners/AddFilterScanner.php',
         'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
@@ -51,6 +53,7 @@ class Environment {
 
         self::$store = [
             EnvironmentVariable::PLUGIN_ROOT_DIRECTORY => $pluginRootDir,
+            EnvironmentVariable::PLUGIN_FILE => $pluginFile,
             EnvironmentVariable::PLUGIN_BASENAME => $pluginBaseName,
             EnvironmentVariable::PLUGIN_FILE_NAME_NO_SUFFIX => $pluginFileNameNoSuffix,
             EnvironmentVariable::PLUGIN_PAGE_ID =>

@@ -47,7 +47,18 @@ class Core {
      * Registers WordPress hooks and calls its child setup methods.
      */
     public function setup() {
+        register_activation_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'activate']);
+        register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'uninstall']);
+
         $this->router->setup();
         $this->admin->setup();
+    }
+
+    public function activate() {
+        Database::ensureSchema();
+    }
+
+    public function uninstall() {
+        Database::dropSchema();
     }
 }
