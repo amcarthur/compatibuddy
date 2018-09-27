@@ -9,9 +9,10 @@ namespace Compatibuddy;
 class EnvironmentVariable {
     const PLUGIN_ROOT_DIRECTORY = 0;
     const PLUGIN_BASENAME = 1;
-    const PLUGIN_PAGE_ID = 2;
-    const PLUGIN_BASE_URI = 3;
-    const TEMPLATES_DIRECTORY = 4;
+    const PLUGIN_FILE_NAME_NO_SUFFIX = 2;
+    const PLUGIN_PAGE_ID = 3;
+    const PLUGIN_BASE_URI = 4;
+    const TEMPLATES_DIRECTORY = 5;
 }
 
 /**
@@ -26,11 +27,11 @@ class Environment {
     private static $store;
 
     protected static $filesToInclude = [
-        'Router.php',
-        'Admin.php',
-        'vendor/autoload.php',
-        'utilities.php',
-        'filter-checker.php'
+        'lib/Router.php',
+        'lib/Admin.php',
+        'lib/vendor/autoload.php',
+        'lib/utilities.php',
+        'lib/filter-checker.php'
     ];
 
     /**
@@ -41,16 +42,19 @@ class Environment {
     /**
      * Initializes the variable store array.
      */
-    public static function initialize() {
-        $pluginRootDir = plugin_dir_path(__FILE__);
-        $pluginBaseName = plugin_basename(__FILE__);
+    public static function initialize($pluginFile) {
+        $pluginRootDir = plugin_dir_path($pluginFile);
+        $pluginBaseName = plugin_basename($pluginFile);
+        $pluginFileNameNoSuffix = basename($pluginBaseName, '.php');
+
         self::$store = [
             EnvironmentVariable::PLUGIN_ROOT_DIRECTORY => $pluginRootDir,
             EnvironmentVariable::PLUGIN_BASENAME => $pluginBaseName,
+            EnvironmentVariable::PLUGIN_FILE_NAME_NO_SUFFIX => $pluginFileNameNoSuffix,
             EnvironmentVariable::PLUGIN_PAGE_ID =>
                 'toplevel_page_' . basename($pluginBaseName, '.php'),
-            EnvironmentVariable::PLUGIN_BASE_URI => admin_url('admin.php?page=' . $pluginBaseName),
-            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'Templates'
+            EnvironmentVariable::PLUGIN_BASE_URI => admin_url('admin.php?page=' . $pluginFileNameNoSuffix),
+            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'lib/Templates'
         ];
     }
 
