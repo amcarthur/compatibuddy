@@ -37,7 +37,7 @@ require_once('lib/Core.php');
 use Compatibuddy\Environment;
 use Compatibuddy\Core;
 
-Environment::initialize();
+Environment::initialize(__FILE__);
 Environment::includeFiles();
 $core = new Core();
 $core->setup();

@@ -115,9 +115,10 @@ class Router {
     /**
      * The dashboard page controller.
      * @param string $view
+     * @return string
      */
     public function dashboardController($view) {
         $x = "test";
-        //return $this->templateEngine->render($view, ['name' => $x]);
+        return $this->templateEngine->render($view, ['name' => $x]);
     }
 }
