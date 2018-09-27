@@ -29,54 +29,15 @@ Text Domain: compatibuddy
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-if( !function_exists('compatibuddy_main') ) {
-    /**
-     * The entry point for CompatiBuddy.
-     */
-    function compatibuddy_main() {
-        if (!defined('ABSPATH')) {
-            return;
-        }
+if (!defined('ABSPATH')) die("Forbidden");
 
-        require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
-        require_once plugin_dir_path( __FILE__ ) . 'inc/utilities.php';
-        require_once plugin_dir_path( __FILE__ ) . 'inc/filter-checker.php';
+require_once('lib/Environment.php');
+require_once('lib/Core.php');
 
-        register_activation_hook(__FILE__, 'compatibuddy_activate');
-        add_action('admin_menu', 'compatibuddy_add_menu_items');
-        add_filter('bulk_actions-users', 'register_bulk_actions', PHP_INT_MIN);
-    }
-}
+use Compatibuddy\Environment;
+use Compatibuddy\Core;
 
-function register_bulk_actions() {
-
-}
-
-if( !function_exists('compatibuddy_activate') ) {
-    /**
-     * Implements the activation hook for CompatiBuddy. Responsible for creating/updating schema and default options.
-     */
-    function compatibuddy_activate() {
-        // TODO
-    }
-}
-
-if( !function_exists('compatibuddy_add_menu_items') ) {
-    /**
-     * Responsible for adding the menu items for CompatiBuddy.
-     */
-    function compatibuddy_add_menu_items() {
-        add_menu_page('CompatiBuddy', 'CompatiBuddy', 'activate_plugins', 'compatibuddy', 'compatibuddy_render_page');
-    }
-}
-
-if( !function_exists('compatibuddy_render_page') ) {
-    /**
-     * Implements the page renderer for CompatiBuddy.
-     */
-    function compatibuddy_render_page() {
-        require_once plugin_dir_path( __FILE__ ) . 'inc/dashboard-page.php';
-    }
-}
-
-compatibuddy_main();
+Environment::initialize();
+Environment::includeFiles();
+$core = new Core();
+$core->setup();
