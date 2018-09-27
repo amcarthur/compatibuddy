@@ -24,12 +24,12 @@ class Router {
             Routes::DASHBOARD_PAGE => [
                 'action' => 'dashboard',
                 'controller' => [$this, 'dashboardController'],
-                'view' => 'dashboard'
+                'view' => 'Dashboard'
             ],
             Routes::SETTINGS_PAGE => [
                 'action' => 'settings',
                 'controller' => [$this, 'settingsController'],
-                'view' => 'settings'
+                'view' => 'Settings'
             ]
         ];
 
@@ -56,7 +56,55 @@ class Router {
             return $parentFile;
         }
 
+        global $submenu_file;
+
+        $route = $this->parseRoute();
+        if (array_key_exists($route, $this->routes)) {
+            $submenu_file = htmlentities(Router::buildUri($route));
+        }
+
         return $parentFile;
+    }
+
+    /**
+     * If a route is specified, returns the map for that route, otherwise returns the entire route map.
+     * @param int $route
+     * @return array|null
+     */
+    public function getRouteMap($route = null) {
+        if ($route === null) {
+            return $this->routes;
+        }
+
+        if (isset($this->routes[$route])) {
+            return $this->routes[$route];
+        }
+
+        return null;
+    }
+
+    /**
+     * Attempts to parse a route from an action. If no action is specified, it will look for the action in the request.
+     * If no route is suitable for the action, the dashboard is used.
+     * @param string $action
+     * @return int|null
+     */
+    public function parseRoute($action = '') {
+        if ($action === '') {
+            if (isset($_GET['action'])) {
+                $action = strtolower(trim($_GET['action']));
+            } else {
+                return 'dashboard';
+            }
+        }
+
+        foreach ($this->routes as $route => $map) {
+            if ($map['action'] === $action) {
+                return $route;
+            }
+        }
+
+        return 'dashboard';
     }
 
     /**
@@ -118,6 +166,16 @@ class Router {
      * @return string
      */
     public function dashboardController($view) {
+        $x = "test";
+        return $this->templateEngine->render($view, ['name' => $x]);
+    }
+
+    /**
+     * The settings page controller.
+     * @param string $view
+     * @return string
+     */
+    public function settingsController($view) {
         $x = "test";
         return $this->templateEngine->render($view, ['name' => $x]);
     }

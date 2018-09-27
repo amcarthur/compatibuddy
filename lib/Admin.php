@@ -40,10 +40,13 @@ class Admin {
         global $submenu;
 
         $submenu['compatibuddy'][] = [__('Dashboard', 'compatibuddy'),
-            'activate_plugins', $this->router->buildUri(Routes::DASHBOARD_PAGE)];
+            'activate_plugins', htmlentities($this->router->buildUri(Routes::DASHBOARD_PAGE))];
+
+        $submenu['compatibuddy'][] = [__('Settings', 'compatibuddy'),
+            'activate_plugins', htmlentities($this->router->buildUri(Routes::SETTINGS_PAGE))];
     }
 
     public function menuPageAction() {
-        $this->router->route(Routes::DASHBOARD_PAGE);
+        $this->router->route($this->router->parseRoute());
     }
 }
