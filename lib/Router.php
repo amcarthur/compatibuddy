@@ -5,6 +5,7 @@ namespace Compatibuddy;
 use Compatibuddy\Analyzers\DuplicateAddFilterAnalyzer;
 use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
 use Compatibuddy\Scanners\AddFilterScanner;
+use Compatibuddy\Tables\DuplicateAddFilterTable;
 use Compatibuddy\Utilities;
 
 class Routes {
@@ -171,18 +172,13 @@ class Router {
      * @return string
      */
     public function dashboardController($view) {
-        $plugins = Utilities::getPlugins();
-        $pluginKeys = array_keys($plugins);
-        $addFilterScanner = new AddFilterScanner();
-        $addFilterScanResult = $addFilterScanner->scan($plugins);
-        //$duplicateAddFilterAnalyzer = new DuplicateAddFilterAnalyzer();
-        //$duplicateAddFilterAnalysis = $duplicateAddFilterAnalyzer->analyze($addFilterScanResult, $plugins['compatibuddy/compatibuddy.php']);
-        $higherPriorityAddFilterAnalyzer = new HigherPriorityAddFilterAnalyzer();
-        $higherPriorityAddFilterAnalysis = $higherPriorityAddFilterAnalyzer->analyze($addFilterScanResult, $plugins['compatibuddy/compatibuddy.php']);
+
+        $table = new DuplicateAddFilterTable();
+        $table->prepare_items();
 
         return $this->templateEngine->render($view, [
             'title' => __('Dashboard', 'compatibuddy'),
-            'duplicateAddFilters' => $higherPriorityAddFilterAnalysis
+            'table' => $table
         ]);
     }
 

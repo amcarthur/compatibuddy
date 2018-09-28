@@ -37,6 +37,7 @@ class Environment {
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
         'lib/Router.php',
         'lib/Admin.php',
+        'lib/Tables/DuplicateAddFilterTable.php'
     ];
 
     /**
