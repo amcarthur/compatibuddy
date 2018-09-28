@@ -31,6 +31,7 @@ class Environment {
         'lib/vendor/autoload.php',
         'lib/Database.php',
         'lib/Utilities.php',
+        'lib/Caches/AddFilterCache.php',
         'lib/Scanners/AddFilterScanner.php',
         'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',

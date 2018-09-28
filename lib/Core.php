@@ -48,7 +48,7 @@ class Core {
      */
     public function setup() {
         register_activation_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'activate']);
-        register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'uninstall']);
+        register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [__CLASS__, 'uninstall']);
 
         $this->router->setup();
         $this->admin->setup();
@@ -58,7 +58,7 @@ class Core {
         Database::ensureSchema();
     }
 
-    public function uninstall() {
+    public static function uninstall() {
         Database::dropSchema();
     }
 }

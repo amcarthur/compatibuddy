@@ -6,31 +6,35 @@ require_once('AnalyzerInterface.php');
 
 class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
 
-    public function analyze($scanResult, $subject = null) {
-        $duplicateFilters = [];
+    public function analyze($scanResults, $subject = null) {
+        $flatAddFilterCalls = [];
 
-        foreach ($scanResult as $addFilterTag => $modules) {
-            if (count($modules) <= 1) {
-                continue;
-            }
-
-            foreach ($modules as $moduleId => $calls) {
-                $duplicateFilters[$addFilterTag][$moduleId] = $calls;
-            }
-        }
-
-        if ($subject === null) {
-            return $duplicateFilters;
-        }
-
-        $filteredFilters = array();
-
-        foreach (array_keys($duplicateFilters) as $key) {
-            if (array_key_exists($subject['id'], $duplicateFilters[$key])) {
-                $filteredFilters[$key] = $duplicateFilters[$key];
+        foreach ($scanResults as $moduleId => $calls) {
+            foreach ($calls as $tag => $call) {
+                if (isset($flatAddFilterCalls[$tag])) {
+                    $flatAddFilterCalls[$tag] = array_merge($flatAddFilterCalls[$tag], $call);
+                } else {
+                    $flatAddFilterCalls[$tag] = $call;
+                }
             }
         }
 
-        return $filteredFilters;
+        $duplicateAddFilterCalls = array_filter($flatAddFilterCalls, function($calls) use($subject) {
+            if (count($calls) < 2) {
+                return false;
+            }
+
+            if ($subject !== null) {
+                foreach ($calls as $call) {
+                    if ($call['module']['id'] === $subject['id']) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
+
+        return $duplicateAddFilterCalls;
     }
 }

@@ -4,57 +4,84 @@ namespace Compatibuddy\Analyzers;
 
 require_once('AnalyzerInterface.php');
 
-class HigherPriorityAddFilterAnalyzer implements AnalyzerInterface {
+class HigherPriorityAddFilterAnalyzer extends DuplicateAddFilterAnalyzer {
 
-    public function analyze($scanResult, $subject) {
-        $filtersOverwritten = [];
+    public function analyze($scanResults, $subject = null) {
+        $prioritizedFilters = [];
 
-        foreach ($scanResult as $addFilterTag => $modules) {
+        if ($subject === null) {
+            return $prioritizedFilters;
+        }
 
-            $priorities = [];
+        $duplicateAddFilters = parent::analyze($scanResults, $subject);
 
-            foreach ($modules as $moduleId => $module) {
+        foreach ($duplicateAddFilters as $tag => $calls) {
+            $currentPrioritizedFilters = [
+                $tag => []
+            ];
 
-                foreach ($module['files'] as $file => $calls) {
+            foreach ($calls as $call) {
+                if ($call['module']['id'] === $subject['id']) {
+                    if (!$this->tryParsePriority($call)) {
+                        continue;
+                    }
 
-                    foreach ($calls as $call) {
+                    $currentPrioritizedFilters[$tag][] = $call;
+                }
+            }
 
-                        if ($moduleId === $subject['id']) {
-                            $priorities['subject'] = $call;
-                        }
+            if (empty($currentPrioritizedFilters[$tag])) {
+                continue;
+            }
 
-                        if (!isset($call['priority'])) {
-                            $call['priority'] = 10;
-                        }
+            foreach ($calls as $call) {
+                if ($call['module']['id'] === $subject['id']) {
+                    continue;
+                }
 
-                        if ($call['priority'] === 'PHP_INT_MAX') {
-                            $call['priority'] = PHP_INT_MAX;
-                        } else if ($call['priority'] === 'PHP_INT_MIN') {
-                            $call['priority'] = PHP_INT_MIN;
-                        }
+                if (!$this->tryParsePriority($call)) {
+                    continue;
+                }
 
-                        if (!is_numeric( $call['priority'])) {
-                            continue;
-                        }
 
-                        $call['priority'] = (int)$call['priority'];
-
-                        if (!isset( $priorities['blame'])) {
-                            $priorities['blame'] = $call;
-                        } else if ($call['priority'] > $priorities['blame']['priority']) {
-                            $priorities['blame'] = $call;
-                        }
+                foreach ($currentPrioritizedFilters[$tag] as &$subjectCall) {
+                    if ($call['priority'] > $subjectCall['priority']) {
+                        $subjectCall['conflicts'][] = $call;
                     }
                 }
             }
 
-            if (isset($priorities['subject'])
-                && isset ($priorities['blame'])
-                && $priorities['subject']['plugin']['id'] !== $priorities['blame']['plugin']['id']) {
-                $filtersOverwritten[$addFilterTag] = $priorities;
+            foreach ($currentPrioritizedFilters[$tag] as $currentFilterCalls) {
+                if (isset($currentFilterCalls['conflicts'])) {
+                    $prioritizedFilters[$tag][] = $currentFilterCalls;
+                }
             }
         }
 
-        return $filtersOverwritten;
+        return $prioritizedFilters;
+    }
+
+    private function tryParsePriority(&$call) {
+        if (!isset($call['priority'])) {
+            $call['priority'] = 10;
+            return true;
+        }
+
+        if ($call['priority'] === 'PHP_INT_MAX') {
+            $call['priority'] = PHP_INT_MAX;
+            return true;
+        }
+
+        if ($call['priority'] === 'PHP_INT_MIN') {
+            $call['priority'] = PHP_INT_MIN;
+            return true;
+        }
+
+        if (!is_numeric( $call['priority'])) {
+            return false;
+        }
+
+        $call['priority'] = (int)$call['priority'];
+        return true;
     }
 }

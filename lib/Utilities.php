@@ -18,6 +18,11 @@ use \PhpParser\Node\Expr\StaticCall;
 class Utilities {
 
     /**
+     * Disables the constructor.
+     */
+    private function __construct() {}
+
+    /**
      * Returns an array of valid WordPress plugins
      * @return array
      */

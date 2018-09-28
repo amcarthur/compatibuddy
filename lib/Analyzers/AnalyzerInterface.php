@@ -3,5 +3,5 @@
 namespace Compatibuddy\Analyzers;
 
 interface AnalyzerInterface {
-    public function analyze($scanResult, $subject);
+    public function analyze($scanResults, $subject);
 }

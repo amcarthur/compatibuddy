@@ -5,51 +5,69 @@ namespace Compatibuddy\Scanners;
 require_once('ScannerInterface.php');
 
 use Compatibuddy\Utilities;
+use Compatibuddy\Caches\AddFilterCache;
 
 class AddFilterScanner implements ScannerInterface {
 
-    private $filters;
+    private $cache;
 
     public function __construct() {
-        $this->filters = [];
+        $this->cache = new AddFilterCache();
+        $this->cache->fetch();
     }
 
-    public function scan($plugins) {
-        foreach ($plugins as $plugin) {
-            $phpFiles = Utilities::getPhpFilesInDirectory($plugin['absolute_directory']);
+    public function scan($modules) {
+        $filters = [];
 
-            foreach ($phpFiles as $file) {
-                $calls = $this->getAddFilterFunctionCalls($plugin, $file);
-                if (!$calls) {
-                    continue;
-                }
+        foreach ($modules as $module) {
+            $moduleCalls = null;
+            $cachedModuleCalls = $this->cache->get($module['id']);
+            $usingCached = false;
 
-                foreach ($calls as $tag => $call) {
-                    if (!isset($this->filters[$tag])) {
-                        $this->filters[$tag] = [];
-                    }
+            if ($cachedModuleCalls !== null) {
+                $moduleCalls['calls'] = $cachedModuleCalls;
+                $usingCached = true;
+            } else {
+                $moduleCalls['calls'] = $this->getModuleAddFilterFunctionCalls($module);
+            }
 
-                    if (!isset($this->filters[$tag][$plugin['id']])) {
-                        $this->filters[$tag][$plugin['id']] = [
-                            'files' => []
-                        ];
-                    }
+            $moduleCalls['module'] = $module;
 
-                    if (!isset($this->filters[$tag][$plugin['id']]['files'][$file])) {
-                        $this->filters[$tag][$plugin['id']]['files'][$file] = [];
-                    }
+            foreach ($moduleCalls['calls'] as $tag => $call) {
+                $filters[$module['id']][$tag] = $call;
+            }
 
-                    $this->filters[$tag][$plugin['id']]['files'][$file] = array_merge($this->filters[$tag][$plugin['id']]['files'][$file], $call);
-                }
+            if (!$usingCached) {
+                $this->cache->set($module['id'], $moduleCalls);
             }
         }
 
-        return $this->filters;
+        $this->cache->commit();
+
+        return $filters;
     }
 
-    private function getAddFilterFunctionCalls($plugin, $file) {
+    private function getModuleAddFilterFunctionCalls($module) {
+        $phpFiles = Utilities::getPhpFilesInDirectory($module['absolute_directory']);
+
+        $moduleCalls = [];
+
+        foreach ($phpFiles as $file) {
+            $calls = $this->getAddFilterFunctionCalls($module, $file);
+            if (!$calls) {
+                continue;
+            }
+
+            $moduleCalls = array_merge($moduleCalls, $calls);
+        }
+
+        return $moduleCalls;
+    }
+
+    private function getAddFilterFunctionCalls($module, $file) {
         $formattedAddFilterCalls = [];
         $functionCalls = Utilities::getFunctionCalls($file, 'add_filter');
+
         if (!$functionCalls) {
             return false;
         }
@@ -60,7 +78,7 @@ class AddFilterScanner implements ScannerInterface {
             }
 
             $entry = [
-                'plugin' => $plugin,
+                'module' => $module,
                 'file' => $file,
                 'line' => $call['line'],
                 'tag' => $call['args'][0],
