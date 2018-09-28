@@ -11,13 +11,10 @@ class AddFilterCache implements CacheInterface {
 
     private $table;
     private $map;
-    private $modified;
-
     public function __construct() {
         global $wpdb;
 
         $this->table = $wpdb->prefix . Database::ADD_FILTER_CACHE_TABLE;
-        $this->modified = false;
     }
 
     public function get($key = null) {
@@ -30,7 +27,7 @@ class AddFilterCache implements CacheInterface {
 
     public function set($key, $value) {
         $this->map[$key] = $value;
-        $this->modified = true;
+        $this->map[$key]['modified'] = true;
     }
 
     public function fetch() {
@@ -46,42 +43,38 @@ class AddFilterCache implements CacheInterface {
 
             $this->map[$moduleId] = $data;
         }
-
-        $this->modified = false;
     }
 
     public function commit() {
         global $wpdb;
 
-        if ($this->modified) {
-            $values = [];
-            $lastUpdated = date("Y-m-d H:i:s");
+        $values = [];
+        $lastUpdated = date("Y-m-d H:i:s");
 
-            foreach($this->map as $moduleId => $module) {
+        foreach($this->map as $moduleId => $module) {
+            if ($module['modified']) {
                 $values[] = $wpdb->prepare("(%s,%s,%s,%s)",
                     $moduleId, $module['module']['metadata']['Version'],
                     $lastUpdated, json_encode($module['calls']));
             }
+        }
 
-            $query = "
+        $query = "
 INSERT INTO $this->table (module_id, module_version, last_updated, data)
 VALUES ";
-            $query .= implode(",\n", $values);
-            $query .= "
+        $query .= implode(",\n", $values);
+        $query .= "
 ON DUPLICATE KEY UPDATE
-    module_version = VALUES(module_version),
-    last_updated = VALUES(last_updated),
-    data = VALUES(data)
+module_version = VALUES(module_version),
+last_updated = VALUES(last_updated),
+data = VALUES(data)
 ";
-            $wpdb->query($query);
+        $wpdb->query($query);
 
-            $this->modified = false;
-        }
     }
 
     public function clear($key = null) {
 
         $this->map = [];
-        $this->modified = false;
     }
 }
