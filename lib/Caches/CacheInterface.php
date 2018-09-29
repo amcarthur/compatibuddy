@@ -7,5 +7,5 @@ interface CacheInterface {
     public function set($key, $value);
     public function fetch();
     public function commit();
-    public function clear($key);
+    public function clear($keys);
 }

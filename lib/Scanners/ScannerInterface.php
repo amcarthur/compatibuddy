@@ -3,5 +3,5 @@
 namespace Compatibuddy\Scanners;
 
 interface ScannerInterface {
-    public function scan($modules);
+    public function scan($modules, $onlyUseCached);
 }

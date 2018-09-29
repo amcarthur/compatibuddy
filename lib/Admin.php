@@ -2,6 +2,8 @@
 
 namespace Compatibuddy;
 
+use Compatibuddy\Tables\ScanPluginsTable;
+
 /**
  * Defines the WordPress admin page behavior.
  * @package Compatibuddy
@@ -9,16 +11,18 @@ namespace Compatibuddy;
 class Admin {
 
     /**
-     * @var Router
+     * @var \League\Plates\Engine
      */
-    private $router;
-
+    private $templateEngine;
     /**
      * Initializes the member variables.
-     * @param Router $router
      */
-    public function __construct(Router $router) {
-        $this->router = $router;
+    public function __construct() {
+        $this->templateEngine = new \League\Plates\Engine(
+            Environment::getValue(EnvironmentVariable::TEMPLATES_DIRECTORY));
+
+        $this->templateEngine->addFolder('scan',
+            Environment::getValue(EnvironmentVariable::TEMPLATES_DIRECTORY) . '/scan');
     }
 
     /**
@@ -34,19 +38,73 @@ class Admin {
             'Compatibuddy',
             'activate_plugins',
             'compatibuddy',
-            [$this, 'menuPageAction']
+            [$this, 'compatibuddyAction']
         );
 
-        global $submenu;
+        add_submenu_page(
+            'compatibuddy',
+            'Compatibuddy',
+            'Scan',
+            'activate_plugins',
+            'compatibuddy-scan',
+            [$this, 'compatibuddyScanAction']
+        );
 
-        $submenu['compatibuddy'][] = [__('Dashboard', 'compatibuddy'),
-            'activate_plugins', htmlentities($this->router->buildUri(Routes::DASHBOARD_PAGE))];
+        add_submenu_page(
+            'compatibuddy',
+            'Compatibuddy',
+            'Analyze',
+            'activate_plugins',
+            'compatibuddy-analyze',
+            [$this, 'compatibuddyAnalyzeAction']
+        );
 
-        $submenu['compatibuddy'][] = [__('Settings', 'compatibuddy'),
-            'activate_plugins', htmlentities($this->router->buildUri(Routes::SETTINGS_PAGE))];
+        add_submenu_page(
+            'compatibuddy',
+            'Compatibuddy',
+            'Settings',
+            'activate_plugins',
+            'compatibuddy-settings',
+            [$this, 'compatibuddySettingsAction']
+        );
     }
 
-    public function menuPageAction() {
-        $this->router->route($this->router->parseRoute());
+    public function compatibuddyAction() {
+        echo 'test1';
+        //$this->router->route($this->router->parseRoute());
+    }
+
+    public function compatibuddyScanAction() {
+        $currentTab = (isset($_REQUEST['tab']) && $_REQUEST['tab'] === 'themes') ? 'themes' : 'plugins';
+
+        $tabData = [];
+        switch ($currentTab) {
+            case 'plugins':
+                $tabData['table'] = new ScanPluginsTable($this);
+                $tabData['table']->prepare_items();
+                break;
+            case 'themes':
+
+                break;
+            default:
+        }
+
+        echo $this->templateEngine->render('scan', [
+            'title' => __('Scan', 'compatibuddy'),
+            'currentTab' => $currentTab,
+            'pluginsUri' => add_query_arg(['tab' => 'plugins'], admin_url('admin.php?page=compatibuddy-scan')),
+            'themesUri' => add_query_arg(['tab' => 'themes'], admin_url('admin.php?page=compatibuddy-scan')),
+            'tabData' => $tabData
+        ]);
+    }
+
+    public function compatibuddyAnalyzeAction() {
+        echo 'test2';
+        //$this->router->route($this->router->parseRoute());
+    }
+
+    public function compatibuddySettingsAction() {
+        echo 'test2';
+        //$this->router->route($this->router->parseRoute());
     }
 }

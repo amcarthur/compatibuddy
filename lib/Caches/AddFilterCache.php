@@ -5,6 +5,8 @@ namespace Compatibuddy\Caches;
 require_once('CacheInterface.php');
 
 use Compatibuddy\Database;
+use DateTime;
+use DateTimeZone;
 
 
 class AddFilterCache implements CacheInterface {
@@ -38,11 +40,19 @@ class AddFilterCache implements CacheInterface {
         $results = $wpdb->get_results("SELECT * FROM $this->table", ARRAY_A);
         foreach ($results as $result) {
             $moduleId = $result['module_id'];
-            $moduleVersion = $result['module_version'];
             $lastUpdated = $result['last_updated'];
             $data = json_decode($result['data'], true);
 
+            $timezone = get_option('timezone_string');
+            if ($timezone) {
+                $date = new DateTime($lastUpdated, new DateTimeZone($timezone));
+            } else {
+                $date = new DateTime($lastUpdated);
+            }
+
             $this->map[$moduleId] = $data;
+            $this->map[$moduleId]['lastUpdated'] = $date->format('M jS Y g:i A');
+            $this->map[$moduleId]['modified'] = false;
         }
     }
 
@@ -50,7 +60,7 @@ class AddFilterCache implements CacheInterface {
         global $wpdb;
 
         $values = [];
-        $lastUpdated = date("Y-m-d H:i:s");
+        $lastUpdated = new DateTime('now', new DateTimeZone('UTC'));
 
         foreach($this->map as $moduleId => $module) {
             if (!isset($module['modified'])) {
@@ -58,10 +68,14 @@ class AddFilterCache implements CacheInterface {
             }
 
             if ($module['modified']) {
-                $values[] = $wpdb->prepare("(%s,%s,%s,%s)",
+                $values[] = $wpdb->prepare('(%s,%s,%s,%s)',
                     $moduleId, $module['module']['metadata']['Version'],
-                    $lastUpdated, json_encode($module));
+                    $lastUpdated->format('Y-m-d H:i:s'), json_encode($module));
             }
+        }
+
+        if (empty($values)) {
+            return;
         }
 
         $query = "
@@ -77,16 +91,23 @@ ON DUPLICATE KEY UPDATE
         $wpdb->query($query);
     }
 
-    public function clear($key = null) {
+    public function clear($keys = null) {
         global $wpdb;
 
         $query = "DELETE FROM $this->table";
 
-        if ($key !== null) {
-            $query .= " WHERE `module_id` = %s";
+        if ($keys !== null) {
+            $values = [];
+            foreach ($keys as $key) {
+                $values[] = $wpdb->prepare('%s', $key);
+                unset($this->map[$key]);
+            }
+
+            $query .= " WHERE `module_id` IN (" . implode(',', $values) . ")";
+        } else {
+            $this->map = [];
         }
 
-        $wpdb->query($wpdb->prepare($query, $key));
-        $this->map = [];
+        $wpdb->query($query);
     }
 }

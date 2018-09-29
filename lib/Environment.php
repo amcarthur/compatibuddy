@@ -35,9 +35,8 @@ class Environment {
         'lib/Scanners/AddFilterScanner.php',
         'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
-        'lib/Router.php',
         'lib/Admin.php',
-        'lib/Tables/DuplicateAddFilterTable.php'
+        'lib/Tables/ScanPluginsTable.php'
     ];
 
     /**
@@ -61,7 +60,7 @@ class Environment {
             EnvironmentVariable::PLUGIN_PAGE_ID =>
                 'toplevel_page_' . basename($pluginBaseName, '.php'),
             EnvironmentVariable::PLUGIN_BASE_URI => admin_url('admin.php?page=' . $pluginFileNameNoSuffix),
-            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'lib/Templates'
+            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'lib/templates'
         ];
     }
 

@@ -24,12 +24,6 @@ namespace Compatibuddy;
  * @package Compatibuddy
  */
 class Core {
-
-    /**
-     * @var Router
-     */
-
-    private $router;
     /**
      * @var Admin
      */
@@ -39,8 +33,7 @@ class Core {
      * Initializes member variables.
      */
     public function __construct() {
-        $this->router = new Router();
-        $this->admin = new Admin($this->router);
+        $this->admin = new Admin();
     }
 
     /**
@@ -50,7 +43,6 @@ class Core {
         register_activation_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'activate']);
         register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [__CLASS__, 'uninstall']);
 
-        $this->router->setup();
         $this->admin->setup();
     }
 

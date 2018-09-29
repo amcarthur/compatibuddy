@@ -16,7 +16,7 @@ class AddFilterScanner implements ScannerInterface {
         $this->cache->fetch();
     }
 
-    public function scan($modules) {
+    public function scan($modules, $onlyUseCached = false) {
         $filters = [];
 
         foreach ($modules as $module) {
@@ -27,8 +27,10 @@ class AddFilterScanner implements ScannerInterface {
             if ($cachedModuleCalls !== null) {
                 $moduleCalls['calls'] = $cachedModuleCalls;
                 $usingCached = true;
-            } else {
+            } else if (!$onlyUseCached) {
                 $moduleCalls['calls'] = $this->getModuleAddFilterFunctionCalls($module);
+            } else {
+                continue;
             }
 
             $moduleCalls['module'] = $module;
@@ -58,7 +60,8 @@ class AddFilterScanner implements ScannerInterface {
                 continue;
             }
 
-            $moduleCalls = array_merge($moduleCalls, $calls);
+            //$moduleCalls = array_merge($moduleCalls, $calls);
+            $moduleCalls[] = $calls;
         }
 
         return $moduleCalls;
@@ -97,5 +100,9 @@ class AddFilterScanner implements ScannerInterface {
         }
 
         return $formattedAddFilterCalls;
+    }
+
+    public function getCache() {
+        return $this->cache;
     }
 }
