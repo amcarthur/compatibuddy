@@ -97,6 +97,10 @@ ON DUPLICATE KEY UPDATE
         $query = "DELETE FROM $this->table";
 
         if ($keys !== null) {
+            if (empty($keys)) {
+                return;
+            }
+
             $values = [];
             foreach ($keys as $key) {
                 $values[] = $wpdb->prepare('%s', $key);

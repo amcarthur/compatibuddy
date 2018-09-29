@@ -229,15 +229,17 @@ class ScanPluginsTable extends \WP_List_Table {
             }
 
             $pluginIds = $_REQUEST['plugin_ids'];
+            $pluginIdsToClear = [];
             $pluginsToScan = [];
             foreach ($pluginIds as $pluginId) {
                 $cached = $addFilterScanner->getCache()->get($pluginId);
-                if (!$cached || $plugins[$pluginId]['metadata']['Version'] !== $cached['metadata']['Version']) {
+                if (!$cached || $plugins[$pluginId]['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
+                    $pluginIdsToClear[] = $pluginId;
                     $pluginsToScan[$pluginId] = $plugins[$pluginId];
                 }
             }
 
-            $addFilterScanner->getCache()->clear($pluginIds);
+            $addFilterScanner->getCache()->clear($pluginIdsToClear);
             return $addFilterScanner->scan($pluginsToScan);
         }
 
@@ -249,7 +251,6 @@ class ScanPluginsTable extends \WP_List_Table {
             $pluginIds = $_REQUEST['plugin_ids'];
             $pluginsToScan = [];
             foreach ($pluginIds as $pluginId) {
-                $pluginIds[] = $pluginId;
                 $pluginsToScan[$pluginId] = $plugins[$pluginId];
             }
 
@@ -266,7 +267,7 @@ class ScanPluginsTable extends \WP_List_Table {
             $pluginsToScan = [];
             foreach ($plugins as $pluginId => $plugin) {
                 $cached = $addFilterScanner->getCache()->get($pluginId);
-                if (!$cached || $plugin['metadata']['Version'] !== $cached['metadata']['Version']) {
+                if (!$cached || $plugin['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
                     $pluginIds[] = $pluginId;
                     $pluginsToScan[$pluginId] = $plugins[$pluginId];
                 }
