@@ -209,21 +209,6 @@ class ScanPluginsTable extends \WP_List_Table {
 
         $addFilterScanner = new AddFilterScanner();
 
-        if ($action === 'scan') {
-            if (!isset($_REQUEST['plugin']) || !isset($plugins[$_REQUEST['plugin']])) {
-                return false;
-            }
-
-            $plugin = $plugins[$_REQUEST['plugin']];
-            $cached = $addFilterScanner->getCache()->get($_REQUEST['plugin']);
-
-            if ($cached) {
-                $addFilterScanner->getCache()->clear([$_REQUEST['plugin']]);
-            }
-
-            $addFilterScanner->scan([$plugin]);
-        }
-
         if ($action === 'bulk-scan-selected') {
             if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
                 return false;
@@ -314,12 +299,7 @@ class ScanPluginsTable extends \WP_List_Table {
             $scanLinkText = __('Rescan', 'compatibuddy');
         }
 
-        $actions['scan'] = '<a href="' .
-            add_query_arg([
-                'action' => 'scan',
-                'plugin' => urlencode($item['plugin']['id']),
-            ], wp_nonce_url(admin_url('admin.php?page=compatibuddy-scan'), 'bulk-compatibuddy_scan_plugins')) .
-            '">' . $scanLinkText . '</a>';
+        $actions['scan'] = '<a href="#" class="compatibuddy-scan-link" data-plugin="' . $item['plugin']['id'] .'">' . $scanLinkText . '</a>';
 
         $row_value = '<strong>' . esc_html($item['plugin']['metadata']['Name']) . '</strong>';
         return $row_value . $this->row_actions($actions);

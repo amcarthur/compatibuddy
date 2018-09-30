@@ -2,6 +2,8 @@
 
 namespace Compatibuddy;
 
+use Compatibuddy\Caches\AddFilterCache;
+use Compatibuddy\Scanners\AddFilterScanner;
 use Compatibuddy\Tables\ScanPluginsTable;
 
 /**
@@ -30,6 +32,9 @@ class Admin {
      */
     public function setup() {
         add_action('admin_menu', [$this, 'addMenuItems']);
+        if (is_admin()) {
+            add_action('wp_ajax_compatibuddy_scan', [$this, 'ajax_scan']);
+        }
     }
 
     public function addMenuItems() {
@@ -106,5 +111,34 @@ class Admin {
     public function compatibuddySettingsAction() {
         echo 'test2';
         //$this->router->route($this->router->parseRoute());
+    }
+
+    public function ajax_scan() {
+        if (!isset($_REQUEST['_wpnonce'])) {
+            wp_die();
+        }
+
+        $nonce = wp_unslash($_REQUEST['_wpnonce']);
+        if (!wp_verify_nonce($nonce, 'compatibuddy-ajax')) {
+            wp_die();
+        }
+
+        $plugins = Utilities::getPlugins();
+
+        if (!isset($plugins[$_REQUEST['plugin']])) {
+            wp_die();
+        }
+
+        $addFilterScanner = new AddFilterScanner();
+
+        $plugin = $plugins[$_REQUEST['plugin']];
+        $cached = $addFilterScanner->getCache()->get($_REQUEST['plugin']);
+
+        if ($cached) {
+            $addFilterScanner->getCache()->clear([$_REQUEST['plugin']]);
+        }
+
+        $addFilterScanner->scan([$plugin]);
+        wp_die();
     }
 }

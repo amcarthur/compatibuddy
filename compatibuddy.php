@@ -41,4 +41,3 @@ use Compatibuddy\Core;
 Environment::initialize(__FILE__);
 Environment::includeFiles();
 $core = new Core();
-$core->setup();
