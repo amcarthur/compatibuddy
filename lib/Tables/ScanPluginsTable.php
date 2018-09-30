@@ -64,7 +64,7 @@ class ScanPluginsTable extends \WP_List_Table {
         $this->_column_headers = array($columns, $hidden, $sortable);
 
         $plugins = Utilities::getPlugins();
-        $this->handle_bulk_scan($plugins);
+        $this->handle_actions($plugins);
 
         $addFilterScanner = new AddFilterScanner();
         $addFilterScanResults = $addFilterScanner->scan($plugins, true);
@@ -195,7 +195,7 @@ class ScanPluginsTable extends \WP_List_Table {
         $this->items = $formattedItems;
     }
 
-    function handle_bulk_scan($plugins) {
+    function handle_actions($plugins) {
         if (!isset($_REQUEST['_wpnonce']) || (!isset($_REQUEST['action']) && !isset($_REQUEST['action2']))) {
             return false;
         }
@@ -209,12 +209,27 @@ class ScanPluginsTable extends \WP_List_Table {
 
         $addFilterScanner = new AddFilterScanner();
 
-        if ($action === 'bulk-scan-selected') {
-            if (!isset($_REQUEST['plugin_ids']) || empty($_REQUEST['plugin_ids'])) {
+        if ($action === 'scan') {
+            if (!isset($_REQUEST['plugin']) || !isset($plugins[$_REQUEST['plugin']])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugin_ids'];
+            $plugin = $plugins[$_REQUEST['plugin']];
+            $cached = $addFilterScanner->getCache()->get($_REQUEST['plugin']);
+
+            if ($cached) {
+                $addFilterScanner->getCache()->clear([$_REQUEST['plugin']]);
+            }
+
+            $addFilterScanner->scan([$plugin]);
+        }
+
+        if ($action === 'bulk-scan-selected') {
+            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
+                return false;
+            }
+
+            $pluginIds = $_REQUEST['plugins'];
             $pluginsToScan = [];
             foreach ($pluginIds as $pluginId) {
                 $pluginsToScan[$pluginId] = $plugins[$pluginId];
@@ -224,11 +239,11 @@ class ScanPluginsTable extends \WP_List_Table {
         }
 
         if ($action === 'bulk-rescan-selected-out-of-date') {
-            if (!isset($_REQUEST['plugin_ids']) || empty($_REQUEST['plugin_ids'])) {
+            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugin_ids'];
+            $pluginIds = $_REQUEST['plugins'];
             $pluginIdsToClear = [];
             $pluginsToScan = [];
             foreach ($pluginIds as $pluginId) {
@@ -244,11 +259,11 @@ class ScanPluginsTable extends \WP_List_Table {
         }
 
         if ($action === 'bulk-rescan-selected') {
-            if (!isset($_REQUEST['plugin_ids']) || empty($_REQUEST['plugin_ids'])) {
+            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugin_ids'];
+            $pluginIds = $_REQUEST['plugins'];
             $pluginsToScan = [];
             foreach ($pluginIds as $pluginId) {
                 $pluginsToScan[$pluginId] = $plugins[$pluginId];
@@ -293,21 +308,17 @@ class ScanPluginsTable extends \WP_List_Table {
     protected function column_name($item) {
         if ($item['status'] === 2) {
             $scanLinkText = __('Scan', 'compatibuddy');
-            $scanLinkType = 'scan';
         } else if ($item['status'] === 1) {
             $scanLinkText = __('Rescan', 'compatibuddy');
-            $scanLinkType = 'rescan';
         } else {
             $scanLinkText = __('Rescan', 'compatibuddy');
-            $scanLinkType = 'rescan';
         }
 
         $actions['scan'] = '<a href="' .
             add_query_arg([
-                'scan-action' => 'scan',
-                'type' => $scanLinkType,
-                'subject' => urlencode($item['plugin']['id'])
-            ], admin_url('admin.php?page=compatibuddy-scan')) .
+                'action' => 'scan',
+                'plugin' => urlencode($item['plugin']['id']),
+            ], wp_nonce_url(admin_url('admin.php?page=compatibuddy-scan'), 'bulk-compatibuddy_scan_plugins')) .
             '">' . $scanLinkText . '</a>';
 
         $row_value = '<strong>' . esc_html($item['plugin']['metadata']['Name']) . '</strong>';
@@ -367,7 +378,7 @@ class ScanPluginsTable extends \WP_List_Table {
 
     function column_cb($item) {
         return sprintf(
-            '<input type="checkbox" name="plugin_ids[]" value="%s" />', $item['plugin']['id']
+            '<input type="checkbox" name="plugins[]" value="%s" />', $item['plugin']['id']
         );
     }
 }
