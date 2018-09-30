@@ -291,8 +291,27 @@ class ScanPluginsTable extends \WP_List_Table {
     }
 
     protected function column_name($item) {
+        if ($item['status'] === 2) {
+            $scanLinkText = __('Scan', 'compatibuddy');
+            $scanLinkType = 'scan';
+        } else if ($item['status'] === 1) {
+            $scanLinkText = __('Rescan', 'compatibuddy');
+            $scanLinkType = 'rescan';
+        } else {
+            $scanLinkText = __('Rescan', 'compatibuddy');
+            $scanLinkType = 'rescan';
+        }
+
+        $actions['scan'] = '<a href="' .
+            add_query_arg([
+                'scan-action' => 'scan',
+                'type' => $scanLinkType,
+                'subject' => urlencode($item['plugin']['id'])
+            ], admin_url('admin.php?page=compatibuddy-scan')) .
+            '">' . $scanLinkText . '</a>';
+
         $row_value = '<strong>' . esc_html($item['plugin']['metadata']['Name']) . '</strong>';
-        return $row_value;
+        return $row_value . $this->row_actions($actions);
     }
 
     protected function column_version($item) {
@@ -318,34 +337,20 @@ class ScanPluginsTable extends \WP_List_Table {
     protected function column_status($item) {
         if ($item['status'] === 2) {
             $status = __('Not Scanned', 'compatibuddy');
-            $scanLinkText = __('Scan', 'compatibuddy');
-            $scanLinkType = 'scan';
             $noticeClass = 'notice-error';
             $iconClass = 'dashicons-dismiss';
         } else if ($item['status'] === 1) {
             $status = __('Out of Date', 'compatibuddy');
-            $scanLinkText = __('Rescan', 'compatibuddy');
-            $scanLinkType = 'rescan';
             $noticeClass = 'notice-warning';
             $iconClass = 'dashicons-warning';
         } else {
             $status = __('Scanned', 'compatibuddy');
-            $scanLinkText = __('Rescan', 'compatibuddy');
-            $scanLinkType = 'rescan';
             $noticeClass = 'notice-success';
             $iconClass = 'dashicons-yes';
         }
 
-        $actions['scan'] = '<a href="' .
-            add_query_arg([
-                'scan-action' => 'scan',
-                'type' => $scanLinkType,
-                'subject' => urlencode($item['plugin']['id'])
-            ], admin_url('admin.php?page=compatibuddy-scan')) .
-            '">' . $scanLinkText . '</a>';
-
         $row_value = '<div class="notice inline notice-alt ' . $noticeClass . '"><span class="dashicons ' . $iconClass . '"></span>&nbsp;<strong>' . $status . '</strong></div>';
-        return $row_value . $this->row_actions($actions);
+        return $row_value;
     }
 
     function get_bulk_actions() {
