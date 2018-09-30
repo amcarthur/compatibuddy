@@ -296,7 +296,7 @@ class ScanPluginsTable extends \WP_List_Table {
     }
 
     protected function column_version($item) {
-        $row_value = esc_html($item['plugin']['metadata']['Version']);
+        $row_value = esc_html($item['scanResult']['moduleVersion']);
         return $row_value;
     }
 
@@ -320,17 +320,20 @@ class ScanPluginsTable extends \WP_List_Table {
             $status = __('Not Scanned', 'compatibuddy');
             $scanLinkText = __('Scan', 'compatibuddy');
             $scanLinkType = 'scan';
-            $noticeClass = 'notice-warning';
+            $noticeClass = 'notice-error';
+            $iconClass = 'dashicons-dismiss';
         } else if ($item['status'] === 1) {
             $status = __('Out of Date', 'compatibuddy');
             $scanLinkText = __('Rescan', 'compatibuddy');
             $scanLinkType = 'rescan';
             $noticeClass = 'notice-warning';
+            $iconClass = 'dashicons-warning';
         } else {
             $status = __('Scanned', 'compatibuddy');
             $scanLinkText = __('Rescan', 'compatibuddy');
             $scanLinkType = 'rescan';
             $noticeClass = 'notice-success';
+            $iconClass = 'dashicons-yes';
         }
 
         $actions['scan'] = '<a href="' .
@@ -341,7 +344,7 @@ class ScanPluginsTable extends \WP_List_Table {
             ], admin_url('admin.php?page=compatibuddy-scan')) .
             '">' . $scanLinkText . '</a>';
 
-        $row_value = '<div class="notice inline notice-alt ' . $noticeClass . '"><strong>' . $status . '</strong></div>';
+        $row_value = '<div class="notice inline notice-alt ' . $noticeClass . '"><span class="dashicons ' . $iconClass . '"></span>&nbsp;<strong>' . $status . '</strong></div>';
         return $row_value . $this->row_actions($actions);
     }
 
