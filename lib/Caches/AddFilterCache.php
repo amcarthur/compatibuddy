@@ -51,6 +51,7 @@ class AddFilterCache implements CacheInterface {
             }
 
             $this->map[$moduleId] = $data;
+            $this->map[$moduleId]['moduleVersion'] = $result['module_version'];
             $this->map[$moduleId]['lastUpdated'] = $date->format('M jS Y g:i A');
             $this->map[$moduleId]['modified'] = false;
         }

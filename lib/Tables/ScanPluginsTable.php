@@ -124,7 +124,7 @@ class ScanPluginsTable extends \WP_List_Table {
 
                 if ($basename === $moduleId) {
                     $formattedItems[$basename]['scanResult'] = $scanResult;
-                    if ($formattedItems[$basename]['scanResult']['module']['metadata']['Version'] !==
+                    if ($formattedItems[$basename]['scanResult']['moduleVersion'] !==
                         $plugin['metadata']['Version']) {
                         $formattedItems[$basename]['status'] = 1;
                     } else {

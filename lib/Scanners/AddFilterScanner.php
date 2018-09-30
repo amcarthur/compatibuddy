@@ -34,6 +34,7 @@ class AddFilterScanner implements ScannerInterface {
             }
 
             $moduleCalls['module'] = $module;
+            $moduleCalls['moduleVersion'] = $module['metadata']['Version'];
 
             foreach ($moduleCalls['calls'] as $tag => $call) {
                 $filters[$module['id']][$tag] = $call;
