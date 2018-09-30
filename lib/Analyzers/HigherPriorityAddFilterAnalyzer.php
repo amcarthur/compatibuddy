@@ -16,6 +16,7 @@ class HigherPriorityAddFilterAnalyzer extends DuplicateAddFilterAnalyzer {
         $duplicateAddFilters = parent::analyze($scanResults, $subject);
 
         foreach ($duplicateAddFilters as $tag => $calls) {
+
             $currentPrioritizedFilters = [
                 $tag => []
             ];

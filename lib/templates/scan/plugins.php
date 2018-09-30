@@ -1,6 +1,5 @@
 <?php
 /**
- * @var string $formAction
  * @var array $tabData
  */
 ?>

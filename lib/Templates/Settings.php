@@ -1,3 +1,3 @@
-<?php $this->layout('Layout', ['title' => 'Settings']) ?>
+<?php $this->layout('layout', ['title' => 'Settings']) ?>
 
 <p>Hello, <?=$this->e($name)?></p>

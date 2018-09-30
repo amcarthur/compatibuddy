@@ -1,14 +1,11 @@
 <?php
-$this->layout('Layout', ['title' => $title])
+$this->layout('layout', ['title' => $title])
 
 /**
  * @var string $currentTab
  * @var string $pluginsUri
  * @var string $themesUri
- * @var string $pluginsTitle
- * @var string $themesTitle
  * @var array $tabData
- * @var string $pluginsTableFormAction
  */
 ?>
 
@@ -25,7 +22,7 @@ $this->layout('Layout', ['title' => $title])
 
 switch ($currentTab) {
     case 'plugins':
-        $this->insert('scan::plugins', ['tabData' => $tabData, 'formAction' => $pluginsUri]);
+        $this->insert('scan::plugins', ['tabData' => $tabData]);
         break;
     case 'themes':
         $this->insert('scan::themes', ['tabData' => $tabData]);
