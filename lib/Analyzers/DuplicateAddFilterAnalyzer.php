@@ -10,11 +10,14 @@ class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
         $flatAddFilterCalls = [];
 
         foreach ($scanResults as $moduleId => $module) {
-            foreach ($module['calls'] as $tag => $call) {
-                if (isset($flatAddFilterCalls[$tag])) {
-                    $flatAddFilterCalls[$tag] = array_merge($flatAddFilterCalls[$tag], $call);
-                } else {
-                    $flatAddFilterCalls[$tag] = $call;
+            foreach ($module['calls'] as $calls) {
+
+                foreach ($calls as $tag => $call) {
+                    if (isset($flatAddFilterCalls[$tag])) {
+                        $flatAddFilterCalls[$tag] = array_merge($flatAddFilterCalls[$tag], $call);
+                    } else {
+                        $flatAddFilterCalls[$tag] = $call;
+                    }
                 }
             }
         }
@@ -30,9 +33,11 @@ class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
                         return true;
                     }
                 }
+
+                return false;
             }
 
-            return false;
+            return true;
         });
 
         return $duplicateAddFilterCalls;

@@ -2,6 +2,8 @@
 
 namespace Compatibuddy;
 
+use Compatibuddy\Analyzers\DuplicateAddFilterAnalyzer;
+use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
 use Compatibuddy\Caches\AddFilterCache;
 use Compatibuddy\Scanners\AddFilterScanner;
 use Compatibuddy\Tables\ScanPluginsTable;
@@ -25,6 +27,9 @@ class Admin {
 
         $this->templateEngine->addFolder('scan',
             Environment::getValue(EnvironmentVariable::TEMPLATES_DIRECTORY) . '/scan');
+
+        $this->templateEngine->addFolder('analyze',
+            Environment::getValue(EnvironmentVariable::TEMPLATES_DIRECTORY) . '/analyze');
     }
 
     /**
@@ -104,8 +109,50 @@ class Admin {
     }
 
     public function compatibuddyAnalyzeAction() {
-        echo 'test2';
-        //$this->router->route($this->router->parseRoute());
+        $currentTab = (isset($_REQUEST['tab']) && $_REQUEST['tab'] === 'higherPriorityFilters')
+            ? 'higherPriorityFilters' : 'duplicateFilters';
+
+        $plugins = Utilities::getPlugins();
+        $tabData = [];
+        switch ($currentTab) {
+            case 'duplicateFilters':
+                $addFilterScanner = new AddFilterScanner();
+                $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
+                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($addFilterScanner->scan($plugins, true));
+                break;
+            case 'higherPriorityFilters':
+                $tabData['plugins'] = $plugins;
+
+                if (isset($_REQUEST['compatibuddy-higher-priority-filters-subject'])
+                    && isset($_REQUEST['_wpnonce'])
+                    && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])),
+                        'compatibuddy_analyze_higher_priority_filters_subject_select')) {
+
+                    $subjectId = $_REQUEST['compatibuddy-higher-priority-filters-subject'];
+                    if (!isset($plugins[$subjectId])) {
+                        // TODO: Display error message
+                        break;
+                    }
+                    $addFilterScanner = new AddFilterScanner();
+                    $higherPriorityFilterAnalyzer = new HigherPriorityAddFilterAnalyzer();
+                    $analysis = $higherPriorityFilterAnalyzer->analyze($addFilterScanner->scan($plugins, true), $plugins[$subjectId]);
+                    if (empty($tabData['analysis'])) {
+                        // TODO: Display message
+                        break;
+                    }
+                    $tabData['analysis'] = $analysis;
+                }
+                break;
+            default:
+        }
+
+        echo $this->templateEngine->render('analyze', [
+            'title' => __('Analyze', 'compatibuddy'),
+            'currentTab' => $currentTab,
+            'duplicateFiltersUri' => add_query_arg(['tab' => 'duplicateFilters'], admin_url('admin.php?page=compatibuddy-analyze')),
+            'higherPriorityFiltersUri' => add_query_arg(['tab' => 'higherPriorityFilters'], admin_url('admin.php?page=compatibuddy-analyze')),
+            'tabData' => $tabData
+        ]);
     }
 
     public function compatibuddySettingsAction() {
@@ -118,7 +165,7 @@ class Admin {
             wp_die();
         }
 
-        $nonce = wp_unslash($_REQUEST['_wpnonce']);
+        $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
         if (!wp_verify_nonce($nonce, 'compatibuddy-ajax')) {
             wp_die();
         }

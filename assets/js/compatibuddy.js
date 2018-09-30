@@ -13,5 +13,17 @@
                 location.reload();
             });
         });
+
+        $('#compatibuddy-duplicate-filters-tree')
+            .on('ready.jstree', function(e) {
+                $(this).addClass('ready');
+            })
+            .jstree();
+
+        $('#compatibuddy-higher-priority-filters-tree')
+            .on('ready.jstree', function(e) {
+                $(this).addClass('ready');
+            })
+            .jstree();
     });
 })(jQuery);

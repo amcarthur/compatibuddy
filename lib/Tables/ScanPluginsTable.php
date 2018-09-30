@@ -200,7 +200,7 @@ class ScanPluginsTable extends \WP_List_Table {
             return false;
         }
 
-        $nonce = wp_unslash($_REQUEST['_wpnonce']);
+        $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
         if (!wp_verify_nonce($nonce, 'bulk-compatibuddy_scan_plugins')) {
             return false;
         }

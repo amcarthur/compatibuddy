@@ -58,11 +58,35 @@ class Core {
     }
 
     public function enqueue_scripts($hook) {
+        $suffix = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '' : '.min';
+
+        wp_enqueue_style(
+            'jstree',
+            plugins_url('/assets/js/jstree/themes/default/style' . $suffix . '.css',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE))
+        );
+
+        // TODO: add .min
+        wp_enqueue_style(
+            'compatibuddy',
+            plugins_url('/assets/css/compatibuddy.css',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['jstree']
+        );
+
+        wp_enqueue_script(
+            'jstree',
+            plugins_url('/assets/js/jstree/jstree' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['jquery']
+        );
+
+        // TODO: add .min
         wp_enqueue_script(
             'compatibuddy',
             plugins_url('/assets/js/compatibuddy.js',
                 Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
-            ['jquery']
+            ['jquery', 'jstree']
         );
 
         wp_localize_script(
