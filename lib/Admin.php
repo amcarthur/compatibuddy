@@ -136,7 +136,7 @@ class Admin {
                     $addFilterScanner = new AddFilterScanner();
                     $higherPriorityFilterAnalyzer = new HigherPriorityAddFilterAnalyzer();
                     $analysis = $higherPriorityFilterAnalyzer->analyze($addFilterScanner->scan($plugins, true), $plugins[$subjectId]);
-                    if (empty($tabData['analysis'])) {
+                    if (empty($analysis)) {
                         // TODO: Display message
                         break;
                     }

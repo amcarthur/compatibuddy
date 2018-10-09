@@ -17,46 +17,36 @@ class HigherPriorityAddFilterAnalyzer extends DuplicateAddFilterAnalyzer {
 
         foreach ($duplicateAddFilters as $tag => $calls) {
 
-            $currentPrioritizedFilters = [
-                $tag => []
-            ];
+            usort($calls, function($a, $b) {
+                $aHasPriority = self::tryParsePriority($a);
+                $bHasPriority = self::tryParsePriority($b);
 
-            foreach ($calls as $call) {
+                if (!$aHasPriority && !$bHasPriority) {
+                    return 0;
+                }
+
+                if (!$aHasPriority) {
+                    return 1;
+                }
+
+                if (!$bHasPriority) {
+                    return -1;
+                }
+
+                if ($a['priority'] === $b['priority']) {
+                    return 0;
+                }
+
+                return ($a['priority'] > $b['priority']) ? -1 : 1;
+            });
+
+            foreach ($calls as &$call) {
                 if ($call['module']['id'] === $subject['id']) {
-                    if (!$this->tryParsePriority($call)) {
-                        continue;
-                    }
-
-                    $currentPrioritizedFilters[$tag][] = $call;
+                    $call['subject'] = true;
                 }
             }
 
-            if (empty($currentPrioritizedFilters[$tag])) {
-                continue;
-            }
-
-            foreach ($calls as $call) {
-                if ($call['module']['id'] === $subject['id']) {
-                    continue;
-                }
-
-                if (!$this->tryParsePriority($call)) {
-                    continue;
-                }
-
-
-                foreach ($currentPrioritizedFilters[$tag] as &$subjectCall) {
-                    if ($call['priority'] > $subjectCall['priority']) {
-                        $subjectCall['conflicts'][] = $call;
-                    }
-                }
-            }
-
-            foreach ($currentPrioritizedFilters[$tag] as $currentFilterCalls) {
-                if (isset($currentFilterCalls['conflicts'])) {
-                    $prioritizedFilters[$tag][] = $currentFilterCalls;
-                }
-            }
+            $prioritizedFilters[$tag] = $calls;
         }
 
         return $prioritizedFilters;

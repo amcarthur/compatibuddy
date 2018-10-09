@@ -28,13 +28,14 @@ class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
             }
 
             if ($subject !== null) {
+                $moduleFound = false;
                 foreach ($calls as $call) {
                     if ($call['module']['id'] === $subject['id']) {
-                        return true;
+                        $moduleFound = true;
                     }
                 }
 
-                return false;
+                return $moduleFound;
             }
 
             return true;

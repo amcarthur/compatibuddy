@@ -5,3 +5,7 @@
 .compatibuddy-tree.ready {
     display: block;
 }
+
+.compatibuddy-subject {
+    background: red;
+}
