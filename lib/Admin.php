@@ -121,8 +121,9 @@ echo '</form></div>';
     }
 
     public function compatibuddyAction() {
-        echo 'test1';
-        //$this->router->route($this->router->parseRoute());
+        echo $this->templateEngine->render('dashboard', [
+            'title' => __('Dashboard', 'compatibuddy')
+        ]);
     }
 
     public function compatibuddyScanAction() {
