@@ -66,6 +66,15 @@ class Admin {
         add_submenu_page(
             'compatibuddy',
             'Compatibuddy',
+            'Dashboard',
+            'activate_plugins',
+            'compatibuddy',
+            [$this, 'compatibuddyAction']
+        );
+
+        add_submenu_page(
+            'compatibuddy',
+            'Compatibuddy',
             'Scan',
             'activate_plugins',
             'compatibuddy-scan',
