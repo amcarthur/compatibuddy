@@ -36,13 +36,25 @@ class Admin {
      * Registers the WordPress hooks relevant to the admin page.
      */
     public function setup() {
-        add_action('admin_menu', [$this, 'addMenuItems']);
+        add_action('admin_init', [$this, 'adminInit']);
+        add_action('admin_menu', [$this, 'adminMenu']);
         if (is_admin()) {
             add_action('wp_ajax_compatibuddy_scan', [$this, 'ajax_scan']);
         }
+        add_filter('parent_file', [$this, 'testing_func'], 5);
     }
 
-    public function addMenuItems() {
+    public function testing_func() {
+
+    }
+
+    public function adminInit() {
+        register_setting('compatibuddy_options', 'compatibuddy_options', [$this, 'validateOptions']);
+        add_settings_section('general_settings', 'General Settings', [$this, 'renderGeneralSettingsSection'], 'compatibuddy-settings');
+        add_settings_field('use_cache', 'Use Cache', [$this, 'renderUseCacheField'], 'compatibuddy-settings', 'general_settings');
+    }
+
+    public function adminMenu() {
         add_menu_page(
             'Compatibuddy',
             'Compatibuddy',
@@ -77,6 +89,35 @@ class Admin {
             'compatibuddy-settings',
             [$this, 'compatibuddySettingsAction']
         );
+    }
+
+    public function renderOptionsPage() {
+        echo '<div>
+<form action="options.php" method="post">';
+
+settings_fields('compatibuddy_options');
+do_settings_sections('compatibuddy');
+submit_button();
+echo '</form></div>';
+    }
+
+    public function renderGeneralSettingsSection() {
+        echo '<p>General settings for Compatibuddy.</p>';
+    }
+
+    public function renderUseCacheField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['use_cache'])) {
+            $options = [
+                'use_cache' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_use_cache" name="compatibuddy_options[use_cache]" type="checkbox" value="1" ' . checked(1, $options['use_cache'], false) . ' /> Automatically caches scan results.';
+    }
+
+    public function validateOptions($options) {
+        return $options;
     }
 
     public function compatibuddyAction() {
@@ -156,8 +197,9 @@ class Admin {
     }
 
     public function compatibuddySettingsAction() {
-        echo 'test2';
-        //$this->router->route($this->router->parseRoute());
+        echo $this->templateEngine->render('settings', [
+            'title' => __('Settings', 'compatibuddy')
+        ]);
     }
 
     public function ajax_scan() {

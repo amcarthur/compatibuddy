@@ -34,7 +34,7 @@ class Core {
      */
     public function __construct() {
         $this->admin = new Admin();
-        add_action('init', [$this, 'setup']);
+        $this->setup();
     }
 
     /**
@@ -51,10 +51,18 @@ class Core {
 
     public function activate() {
         Database::ensureSchema();
+
+        $options = get_option('compatibuddy_options');
+        if (!$options) {
+            add_option('compatibuddy_options', [
+                'use_cache' => true
+            ]);
+        }
     }
 
     public static function uninstall() {
         Database::dropSchema();
+        delete_option('compatibuddy_options');
     }
 
     public function enqueue_scripts($hook) {
