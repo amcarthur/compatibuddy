@@ -52,6 +52,7 @@ class AddFilterCache implements CacheInterface {
 
             $this->map[$moduleId] = $data;
             $this->map[$moduleId]['moduleVersion'] = $result['module_version'];
+            $this->map[$moduleId]['moduleType'] = $result['module_type'];
             $this->map[$moduleId]['lastUpdated'] = $date->format('M jS Y g:i A');
             $this->map[$moduleId]['modified'] = false;
         }
@@ -69,8 +70,8 @@ class AddFilterCache implements CacheInterface {
             }
 
             if ($module['modified']) {
-                $values[] = $wpdb->prepare('(%s,%s,%s,%s)',
-                    $moduleId, $module['module']['metadata']['Version'],
+                $values[] = $wpdb->prepare('(%s, %s, %s,%s,%s)',
+                    $moduleId, $module['moduleType'], $module['module']['metadata']['Version'],
                     $lastUpdated->format('Y-m-d H:i:s'), json_encode($module));
             }
         }
@@ -80,12 +81,13 @@ class AddFilterCache implements CacheInterface {
         }
 
         $query = "
-INSERT INTO $this->table (`module_id`, `module_version`, `last_updated`, `data`)
+INSERT INTO $this->table (`module_id`, `module_type`, `module_version`, `last_updated`, `data`)
 VALUES ";
         $query .= implode(",\n", $values);
         $query .= "
 ON DUPLICATE KEY UPDATE
 `module_version` = VALUES(`module_version`),
+`module_type` = VALUES(`module_type`),
 `last_updated` = VALUES(`last_updated`),
 `data` = VALUES(`data`)
 ";

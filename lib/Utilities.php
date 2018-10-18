@@ -39,6 +39,7 @@ class Utilities {
                 $plugin_info[$plugin] = [
                     'id' => $plugin,
                     'metadata' => $data,
+                    'type' => 'plugin',
                     'absolute_directory' => dirname(WP_PLUGIN_DIR . '/' . $plugin)
                 ];
             }
@@ -52,18 +53,31 @@ class Utilities {
      * @return array
      */
     public static function getThemes() {
-        $all_themes = search_theme_directories();
-        $theme_dirs = [];
+        $all_themes = wp_get_themes();
+        $theme_info = [];
 
-        foreach ($all_themes as $theme) {
-            $theme_dirs[] = [
-                'theme_file' => $theme['theme_file'],
-                'theme_root' => $theme['theme_root'],
-                'directory' => $theme['theme_root'] . '/' . dirname($theme['theme_file'])
+        foreach ($all_themes as $theme => $obj) {
+            $theme_info[$theme] = [
+                'id' => $theme,
+                'metadata' => [
+                    'Name' => $obj->get('Name'),
+                    'ThemeURI' => $obj->get('ThemeURI'),
+                    'Description' => $obj->get('Description'),
+                    'Author' => $obj->get('Author'),
+                    'AuthorURI' => $obj->get('AuthorURI'),
+                    'Version' => $obj->get('Version'),
+                    'Template' => $obj->get('Template'),
+                    'Status' => $obj->get('Status'),
+                    'Tags' => $obj->get('Tags'),
+                    'TextDomain' => $obj->get('TextDomain'),
+                    'DomainPath' => $obj->get('DomainPath')
+                ],
+                'type' => 'theme',
+                'absolute_directory' => $obj->theme_root . '/' . $theme
             ];
         }
 
-        return $theme_dirs;
+        return $theme_info;
     }
 
     /**

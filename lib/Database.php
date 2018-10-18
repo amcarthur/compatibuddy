@@ -19,6 +19,7 @@ class Database {
         $createAddFilterCacheTableSql = sprintf("CREATE TABLE %s (
   id mediumint(9) NOT NULL AUTO_INCREMENT,
   module_id varchar(255) NOT NULL,
+  module_type varchar(255) NOT NULL,
   module_version varchar(55) NOT NULL,
   last_updated datetime NOT NULL,
   data longtext NOT NULL,

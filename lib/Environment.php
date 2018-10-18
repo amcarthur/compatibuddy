@@ -36,7 +36,8 @@ class Environment {
         'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
         'lib/Admin.php',
-        'lib/Tables/ScanPluginsTable.php'
+        'lib/Tables/ScanPluginsTable.php',
+        'lib/Tables/ScanThemesTable.php'
     ];
 
     /**

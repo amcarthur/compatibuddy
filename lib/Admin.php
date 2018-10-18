@@ -7,6 +7,7 @@ use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
 use Compatibuddy\Caches\AddFilterCache;
 use Compatibuddy\Scanners\AddFilterScanner;
 use Compatibuddy\Tables\ScanPluginsTable;
+use Compatibuddy\Tables\ScanThemesTable;
 
 /**
  * Defines the WordPress admin page behavior.
@@ -39,7 +40,8 @@ class Admin {
         add_action('admin_init', [$this, 'adminInit']);
         add_action('admin_menu', [$this, 'adminMenu']);
         if (is_admin()) {
-            add_action('wp_ajax_compatibuddy_scan', [$this, 'ajax_scan']);
+            add_action('wp_ajax_compatibuddy_scan_plugin', [$this, 'ajax_scan_plugin']);
+            add_action('wp_ajax_compatibuddy_scan_theme', [$this, 'ajax_scan_theme']);
         }
         add_filter('parent_file', [$this, 'testing_func'], 5);
     }
@@ -141,11 +143,12 @@ echo '</form></div>';
         $tabData = [];
         switch ($currentTab) {
             case 'plugins':
-                $tabData['table'] = new ScanPluginsTable($this);
+                $tabData['table'] = new ScanPluginsTable();
                 $tabData['table']->prepare_items();
                 break;
             case 'themes':
-
+                $tabData['table'] = new ScanThemesTable();
+                $tabData['table']->prepare_items();
                 break;
             default:
         }
@@ -212,7 +215,7 @@ echo '</form></div>';
         ]);
     }
 
-    public function ajax_scan() {
+    public function ajax_scan_plugin() {
         if (!isset($_REQUEST['_wpnonce'])) {
             wp_die();
         }
@@ -238,6 +241,35 @@ echo '</form></div>';
         }
 
         $addFilterScanner->scan([$plugin]);
+        wp_die();
+    }
+
+    public function ajax_scan_theme() {
+        if (!isset($_REQUEST['_wpnonce'])) {
+            wp_die();
+        }
+
+        $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
+        if (!wp_verify_nonce($nonce, 'compatibuddy-ajax')) {
+            wp_die();
+        }
+
+        $themes = Utilities::getThemes();
+
+        if (!isset($themes[$_REQUEST['theme']])) {
+            wp_die();
+        }
+
+        $addFilterScanner = new AddFilterScanner();
+
+        $theme = $themes[$_REQUEST['theme']];
+        $cached = $addFilterScanner->getCache()->get($_REQUEST['theme']);
+
+        if ($cached) {
+            $addFilterScanner->getCache()->clear([$_REQUEST['theme']]);
+        }
+
+        $addFilterScanner->scan([$theme]);
         wp_die();
     }
 }

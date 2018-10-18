@@ -10,19 +10,19 @@ if( ! class_exists( 'WP_List_Table' ) ) {
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
-class ScanPluginsTable extends \WP_List_Table {
+class ScanThemesTable extends \WP_List_Table {
 
     function __construct() {
         parent::__construct([
-            'singular'=> 'compatibuddy_scan_plugin',
-            'plural' => 'compatibuddy_scan_plugins',
+            'singular'=> 'compatibuddy_scan_theme',
+            'plural' => 'compatibuddy_scan_themes',
             'ajax'   => false
         ]);
     }
 
-    function extra_tablenav( $which ) {
-        if ($which == "top"){
-            $this->search_box(__('Search', 'compatibuddy'), 'scan_plugins_search');
+    function extra_tablenav($which) {
+        if ( $which == "top" ){
+            $this->search_box(__('Search', 'compatibuddy'), 'scan_themes_search');
         }
         if ( $which == "bottom" ){
             //The code that goes after the table is there
@@ -59,11 +59,11 @@ class ScanPluginsTable extends \WP_List_Table {
         $sortable = $this->get_sortable_columns();
         $this->_column_headers = array($columns, $hidden, $sortable);
 
-        $plugins = Utilities::getPlugins();
-        $this->handle_actions($plugins);
+        $themes = Utilities::getThemes();
+        $this->handle_actions($themes);
 
         $addFilterScanner = new AddFilterScanner();
-        $addFilterScanResults = $addFilterScanner->scan($plugins, true);
+        $addFilterScanResults = $addFilterScanner->scan($themes, true);
 
         $searchKey = isset($_REQUEST['s']) ? strtolower(wp_unslash(trim($_REQUEST['s']))) : '';
 
@@ -86,26 +86,26 @@ class ScanPluginsTable extends \WP_List_Table {
         }
 
         $formattedItems = [];
-        foreach ($plugins as $basename => $plugin) {
+        foreach ($themes as $basename => $theme) {
             $inSearch = false;
             if ($searchKey) {
                 if (stripos(strtolower($basename), $searchKey) !== false) {
                     $inSearch = true;
-                } else if (stripos(strtolower($plugin['metadata']['Name']), $searchKey) !== false) {
+                } else if (stripos(strtolower($theme['metadata']['Name']), $searchKey) !== false) {
                     $inSearch = true;
-                } else if (stripos(strtolower($plugin['metadata']['Author']), $searchKey) !== false) {
+                } else if (stripos(strtolower($theme['metadata']['Author']), $searchKey) !== false) {
                     $inSearch = true;
-                } else if (stripos(strtolower($plugin['metadata']['Version']), $searchKey) !== false) {
+                } else if (stripos(strtolower($theme['metadata']['Version']), $searchKey) !== false) {
                     $inSearch = true;
-                } else if (stripos(strtolower($plugin['metadata']['Version']), $searchKey) !== false) {
+                } else if (stripos(strtolower($theme['metadata']['Version']), $searchKey) !== false) {
                     $inSearch = true;
-                } else if (stripos(strtolower($plugin['metadata']['Author']), $searchKey) !== false) {
+                } else if (stripos(strtolower($theme['metadata']['Author']), $searchKey) !== false) {
                     $inSearch = true;
                 }
             }
 
             $formattedItems[$basename] = [
-                'plugin' => $plugin,
+                'theme' => $theme,
                 'status' => 2
             ];
 
@@ -121,7 +121,7 @@ class ScanPluginsTable extends \WP_List_Table {
                 if ($basename === $moduleId) {
                     $formattedItems[$basename]['scanResult'] = $scanResult;
                     if ($formattedItems[$basename]['scanResult']['moduleVersion'] !==
-                        $plugin['metadata']['Version']) {
+                        $theme['metadata']['Version']) {
                         $formattedItems[$basename]['status'] = 1;
                     } else {
                         $formattedItems[$basename]['status'] = 0;
@@ -140,28 +140,28 @@ class ScanPluginsTable extends \WP_List_Table {
                 switch ($orderBy) {
                     case 'name':
                         if ($order === 'asc') {
-                            return strcasecmp($a['plugin']['metadata']['Name'], $b['plugin']['metadata']['Name']);
+                            return strcasecmp($a['theme']['metadata']['Name'], $b['theme']['metadata']['Name']);
                         }
 
-                        return strcasecmp($b['plugin']['metadata']['Name'], $a['plugin']['metadata']['Name']);
+                        return strcasecmp($b['theme']['metadata']['Name'], $a['theme']['metadata']['Name']);
                     case 'version':
                         if ($order === 'asc') {
-                            return strcasecmp($a['plugin']['metadata']['Version'], $b['plugin']['metadata']['Version']);
+                            return strcasecmp($a['theme']['metadata']['Version'], $b['theme']['metadata']['Version']);
                         }
 
-                        return strcasecmp($b['plugin']['metadata']['Version'], $a['plugin']['metadata']['Version']);
+                        return strcasecmp($b['theme']['metadata']['Version'], $a['theme']['metadata']['Version']);
                     case 'author':
                         if ($order === 'asc') {
-                            return strcasecmp($a['plugin']['metadata']['Author'], $b['plugin']['metadata']['Author']);
+                            return strcasecmp($a['theme']['metadata']['Author'], $b['theme']['metadata']['Author']);
                         }
 
-                        return strcasecmp($b['plugin']['metadata']['Author'], $a['plugin']['metadata']['Author']);
+                        return strcasecmp($b['theme']['metadata']['Author'], $a['theme']['metadata']['Author']);
                     case 'path':
                         if ($order === 'asc') {
-                            return strcasecmp($a['plugin']['id'], $b['plugin']['id']);
+                            return strcasecmp($a['theme']['id'], $b['theme']['id']);
                         }
 
-                        return strcasecmp($b['plugin']['id'], $a['plugin']['id']);
+                        return strcasecmp($b['theme']['id'], $a['theme']['id']);
                     case 'status':
                         if ($a['status'] === $b['status']) {
                             return 0;
@@ -191,13 +191,13 @@ class ScanPluginsTable extends \WP_List_Table {
         $this->items = $formattedItems;
     }
 
-    function handle_actions($plugins) {
+    function handle_actions($themes) {
         if (!isset($_REQUEST['_wpnonce']) || (!isset($_REQUEST['action']) && !isset($_REQUEST['action2']))) {
             return false;
         }
 
         $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
-        if (!wp_verify_nonce($nonce, 'bulk-compatibuddy_scan_plugins')) {
+        if (!wp_verify_nonce($nonce, 'bulk-compatibuddy_scan_themes')) {
             return false;
         }
 
@@ -206,81 +206,81 @@ class ScanPluginsTable extends \WP_List_Table {
         $addFilterScanner = new AddFilterScanner();
 
         if ($action === 'bulk-scan-selected') {
-            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
+            if (!isset($_REQUEST['themes']) || empty($_REQUEST['themes'])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugins'];
-            $pluginsToScan = [];
-            foreach ($pluginIds as $pluginId) {
-                $pluginsToScan[$pluginId] = $plugins[$pluginId];
+            $themeIds = $_REQUEST['themes'];
+            $themesToScan = [];
+            foreach ($themeIds as $themeId) {
+                $themesToScan[$themeId] = $themes[$themeId];
             }
 
-            return $addFilterScanner->scan($pluginsToScan);
+            return $addFilterScanner->scan($themesToScan);
         }
 
         if ($action === 'bulk-rescan-selected-out-of-date') {
-            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
+            if (!isset($_REQUEST['themes']) || empty($_REQUEST['themes'])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugins'];
-            $pluginIdsToClear = [];
-            $pluginsToScan = [];
-            foreach ($pluginIds as $pluginId) {
-                $cached = $addFilterScanner->getCache()->get($pluginId);
-                if (!$cached || $plugins[$pluginId]['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
-                    $pluginIdsToClear[] = $pluginId;
-                    $pluginsToScan[$pluginId] = $plugins[$pluginId];
+            $themeIds = $_REQUEST['themes'];
+            $themeIdsToClear = [];
+            $themesToScan = [];
+            foreach ($themeIds as $themeId) {
+                $cached = $addFilterScanner->getCache()->get($themeId);
+                if (!$cached || $themes[$themeId]['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
+                    $themeIdsToClear[] = $themeId;
+                    $themesToScan[$themeId] = $themes[$themeId];
                 }
             }
 
-            $addFilterScanner->getCache()->clear($pluginIdsToClear);
-            return $addFilterScanner->scan($pluginsToScan);
+            $addFilterScanner->getCache()->clear($themeIdsToClear);
+            return $addFilterScanner->scan($themesToScan);
         }
 
         if ($action === 'bulk-rescan-selected') {
-            if (!isset($_REQUEST['plugins']) || empty($_REQUEST['plugins'])) {
+            if (!isset($_REQUEST['themes']) || empty($_REQUEST['themes'])) {
                 return false;
             }
 
-            $pluginIds = $_REQUEST['plugins'];
-            $pluginsToScan = [];
-            foreach ($pluginIds as $pluginId) {
-                $pluginsToScan[$pluginId] = $plugins[$pluginId];
+            $themeIds = $_REQUEST['themes'];
+            $themesToScan = [];
+            foreach ($themeIds as $themeId) {
+                $themesToScan[$themeId] = $themes[$themeId];
             }
 
-            $addFilterScanner->getCache()->clear($pluginIds);
-            return $addFilterScanner->scan($pluginsToScan);
+            $addFilterScanner->getCache()->clear($themeIds);
+            return $addFilterScanner->scan($themesToScan);
         }
 
         if ($action === 'bulk-scan-all') {
-            return $addFilterScanner->scan($plugins);
+            return $addFilterScanner->scan($themes);
         }
 
         if ($action === 'bulk-rescan-all-out-of-date') {
-            $pluginIds = [];
-            $pluginsToScan = [];
-            foreach ($plugins as $pluginId => $plugin) {
-                $cached = $addFilterScanner->getCache()->get($pluginId);
-                if (!$cached || $plugin['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
-                    $pluginIds[] = $pluginId;
-                    $pluginsToScan[$pluginId] = $plugins[$pluginId];
+            $themeIds = [];
+            $themesToScan = [];
+            foreach ($themes as $themeId => $theme) {
+                $cached = $addFilterScanner->getCache()->get($themeId);
+                if (!$cached || $theme['metadata']['Version'] !== $cached['module']['metadata']['Version']) {
+                    $themeIds[] = $themeId;
+                    $themesToScan[$themeId] = $themes[$themeId];
                 }
             }
 
-            $addFilterScanner->getCache()->clear($pluginIds);
-            return $addFilterScanner->scan($pluginsToScan);
+            $addFilterScanner->getCache()->clear($themeIds);
+            return $addFilterScanner->scan($themesToScan);
         }
 
         if ($action === 'bulk-rescan-all') {
-            $pluginIds = [];
-            foreach ($plugins as $pluginId => $plugin) {
-                $pluginIds[] = $pluginId;
+            $themeIds = [];
+            foreach ($themes as $themeId => $theme) {
+                $themeIds[] = $themeId;
             }
 
-            $addFilterScanner->getCache()->clear($pluginIds);
-            return $addFilterScanner->scan($plugins);
+            $addFilterScanner->getCache()->clear($themeIds);
+            return $addFilterScanner->scan($themes);
         }
 
         return false;
@@ -295,24 +295,24 @@ class ScanPluginsTable extends \WP_List_Table {
             $scanLinkText = __('Rescan', 'compatibuddy');
         }
 
-        $actions['scan'] = '<a href="#" class="compatibuddy-scan-plugin-link" data-plugin="' . $item['plugin']['id'] .'">' . $scanLinkText . '</a>';
+        $actions['scan'] = '<a href="#" class="compatibuddy-scan-theme-link" data-theme="' . $item['theme']['id'] .'">' . $scanLinkText . '</a>';
 
-        $row_value = '<strong>' . esc_html($item['plugin']['metadata']['Name']) . '</strong>';
+        $row_value = '<strong>' . esc_html($item['theme']['metadata']['Name']) . '</strong>';
         return $row_value . $this->row_actions($actions);
     }
 
     protected function column_version($item) {
-        $row_value = esc_html($item['plugin']['metadata']['Version']);
+        $row_value = esc_html($item['theme']['metadata']['Version']);
         return $row_value;
     }
 
     protected function column_author($item) {
-        $row_value = esc_html($item['plugin']['metadata']['Author']);
+        $row_value = esc_html($item['theme']['metadata']['Author']);
         return $row_value;
     }
 
     protected function column_path($item) {
-        $row_value = esc_html($item['plugin']['absolute_directory']);
+        $row_value = esc_html($item['theme']['absolute_directory']);
         return $row_value;
     }
 
@@ -354,7 +354,7 @@ class ScanPluginsTable extends \WP_List_Table {
 
     function column_cb($item) {
         return sprintf(
-            '<input type="checkbox" name="plugins[]" value="%s" />', $item['plugin']['id']
+            '<input type="checkbox" name="themes[]" value="%s" />', $item['theme']['id']
         );
     }
 }
