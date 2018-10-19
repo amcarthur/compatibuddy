@@ -54,6 +54,26 @@ class Admin {
         register_setting('compatibuddy_options', 'compatibuddy_options', [$this, 'validateOptions']);
         add_settings_section('general_settings', 'General Settings', [$this, 'renderGeneralSettingsSection'], 'compatibuddy-settings');
         add_settings_field('use_cache', 'Use Cache', [$this, 'renderUseCacheField'], 'compatibuddy-settings', 'general_settings');
+
+        if (isset($_REQUEST['action'])) {
+            $action = $_REQUEST['action'];
+            if ($action === 'compatibuddy-filter-export') {
+                if (!isset($_REQUEST['_wpnonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])), 'compatibuddy_filter_export')) {
+                    die("Invalid request.");
+                }
+
+                $plugins = Utilities::getPlugins();
+                $themes = Utilities::getThemes();
+                $modules = array_merge($plugins, $themes);
+                $addFilterScanner = new AddFilterScanner();
+                //$duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
+                $scan = $addFilterScanner->scan($modules, true);
+                $encoded = json_encode($scan);
+                header('Content-disposition: attachment; filename=compatibuddy_export.json');
+                header('Content-type: application/json');
+                die($encoded);
+            }
+        }
     }
 
     public function adminMenu() {
@@ -170,12 +190,24 @@ echo '</form></div>';
         $themes = Utilities::getThemes();
         $modules = array_merge($plugins, $themes);
 
+        $scan = null;
+        if (isset($_FILES['importfile'])
+            && isset($_REQUEST['_wpnonce'])
+            && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])), 'compatibuddy-filter-import')) {
+            //array_map('unlink', array_filter((array) glob(Environment::getValue(EnvironmentVariable::TMP_DIRECTORY))));
+            $contents = file_get_contents($_FILES['importfile']['tmp_name']);
+
+            $import_file_name = uniqid() . '.json';
+            move_uploaded_file($_FILES['importfile']['tmp_name'], Environment::getValue(EnvironmentVariable::TMP_DIRECTORY) . '/' . $import_file_name);
+            $scan = json_decode($contents, true);
+        }
+
         $tabData = [];
         switch ($currentTab) {
             case 'duplicateFilters':
                 $addFilterScanner = new AddFilterScanner();
                 $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
-                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($addFilterScanner->scan($modules, true));
+                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
                 break;
             case 'higherPriorityFilters':
                 $tabData['plugins'] = $plugins;

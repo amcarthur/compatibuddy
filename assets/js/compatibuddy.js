@@ -95,5 +95,10 @@
                 }
             })
             .jstree();
+
+        $('#compatibuddy-filter-import-button').on('click', function(e) {
+            $('#compatibuddy-filter-import-upload').toggle();
+            return false;
+        });
     });
 })(jQuery);

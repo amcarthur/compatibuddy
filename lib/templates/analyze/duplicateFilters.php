@@ -4,7 +4,7 @@
  */
 ?>
 <div class="tablenav top">
-    <div class="alignleft actions bulkactions">
+    <div class="alignleft actions">
         <form id="compatibuddy-filters-search">
             <label>
                 Search

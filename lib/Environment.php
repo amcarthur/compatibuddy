@@ -14,6 +14,7 @@ class EnvironmentVariable {
     const PLUGIN_PAGE_ID = 4;
     const PLUGIN_BASE_URI = 5;
     const TEMPLATES_DIRECTORY = 6;
+    const TMP_DIRECTORY = 7;
 }
 
 /**
@@ -61,8 +62,13 @@ class Environment {
             EnvironmentVariable::PLUGIN_PAGE_ID =>
                 'toplevel_page_' . basename($pluginBaseName, '.php'),
             EnvironmentVariable::PLUGIN_BASE_URI => admin_url('admin.php?page=' . $pluginFileNameNoSuffix),
-            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'lib/templates'
+            EnvironmentVariable::TEMPLATES_DIRECTORY => $pluginRootDir . 'lib/templates',
+            EnvironmentVariable::TMP_DIRECTORY => $pluginRootDir . 'tmp'
         ];
+
+        if (!file_exists(self::$store[EnvironmentVariable::TMP_DIRECTORY])) {
+            mkdir(self::$store[EnvironmentVariable::TMP_DIRECTORY], 0755);
+        }
     }
 
     public static function includeFiles() {
