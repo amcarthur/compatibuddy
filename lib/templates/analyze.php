@@ -29,7 +29,7 @@ $this->layout('layout', ['title' => $title])
 
     <h2 class="nav-tab-wrapper">
         <a href="<?php echo $duplicateFiltersUri ?>" class="nav-tab<?php echo $currentTab === 'duplicateFilters' ? ' nav-tab-active' : ''; ?>">
-            <?php echo __('Duplicate Filters', 'compatibuddy') ?>
+            <?php echo __('Shared Filters', 'compatibuddy') ?>
         </a>
         <a href="<?php echo $higherPriorityFiltersUri ?>" class="nav-tab<?php echo $currentTab === 'higherPriorityFilters' ? ' nav-tab-active' : ''; ?>">
             <?php echo __('Higher Priority Filters', 'compatibuddy') ?>

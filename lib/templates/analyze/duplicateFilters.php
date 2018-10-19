@@ -34,13 +34,13 @@
                     <option value="priority">Priority</option>
                     <option value="file">File</option>
                 </optgroup>
-            </select><br />
-            <label>
-                <input type="radio" name="compatibuddy-filters-sort-by-order" value="asc" checked /> Asc
-            </label>
-            <label>
-                <input type="radio" name="compatibuddy-filters-sort-by-order" value="desc" /> Desc
-            </label>
+            </select>
+                <label>
+                    <input type="radio" name="compatibuddy-filters-sort-by-order" value="asc" checked /> Asc
+                </label>
+                <label>
+                    <input type="radio" name="compatibuddy-filters-sort-by-order" value="desc" /> Desc
+                </label>
             <input type="submit" value="Sort" class="button" />
         </form>
     </div>
