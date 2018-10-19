@@ -33,13 +33,15 @@
             .on('ready.jstree', function(e) {
                 $(this).addClass('ready');
             })
-            .bind('select_node.jstree', function(e,data) {
-                if (data.node.a_attr.href !== '#') {
-                    window.location.href = data.node.a_attr.href;
-                }
+            .on('state_ready.jstree', function() {
+                $duplicateFiltersTree.on('select_node.jstree', function(e,data) {
+                    if (data.node.a_attr.href !== '#') {
+                        window.location.href = data.node.a_attr.href;
+                    }
+                });
             })
             .jstree({
-                plugins: ["search", "themes", "types", "sort"],
+                plugins: ["search", "themes", "types", "sort", "state"],
                 types: {
                     "root": {
                         "icon" : "dashicons dashicons-image-filter"
@@ -312,18 +314,6 @@
 
             return false;
         });
-
-        var $higherPriorityFiltersTree = $('#compatibuddy-higher-priority-filters-tree');
-        $higherPriorityFiltersTree
-            .on('ready.jstree', function(e) {
-                $(this).addClass('ready');
-            })
-            .bind("select_node.jstree", function (e, data) {
-                if (data.node.a_attr.href !== '#') {
-                    window.location.href = data.node.a_attr.href;
-                }
-            })
-            .jstree();
 
         $('#compatibuddy-filter-import-button').on('click', function(e) {
             $('#compatibuddy-filter-import-upload').toggle();
