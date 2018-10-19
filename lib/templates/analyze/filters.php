@@ -14,12 +14,18 @@
                         <option>All modules</option>
                         <optgroup label="Plugins">
                             <?php foreach ($tabData['plugins'] as $plugin) { ?>
-                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?></option>
+                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?><?php echo is_plugin_active($plugin['id']) ? ' (Active)</em>' : ' (Inactive)' ?></option>
                             <?php } ?>
                         </optgroup>
                         <optgroup label="Themes">
-                            <?php foreach ($tabData['themes'] as $theme) { ?>
-                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?></option>
+                            <?php
+                            $currentTheme = wp_get_theme();
+                            if (!$currentTheme->exists()) {
+                                $currentTheme = null;
+                            }
+
+                            foreach ($tabData['themes'] as $theme) { ?>
+                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?><?php echo ($currentTheme !== null && $currentTheme->get_template() === $theme['id']) ? ' (Active)' : '' ?></option>
                             <?php } ?>
                         </optgroup>
                     </select>
