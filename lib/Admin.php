@@ -207,11 +207,11 @@ echo '</form></div>';
             case 'duplicateFilters':
                 $addFilterScanner = new AddFilterScanner();
                 $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
+                $tabData['plugins'] = $plugins;
+                $tabData['themes'] = $themes;
                 $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
                 break;
             case 'higherPriorityFilters':
-                $tabData['plugins'] = $plugins;
-                $tabData['themes'] = $themes;
 
                 if (isset($_REQUEST['compatibuddy-higher-priority-filters-subject'])
                     && isset($_REQUEST['_wpnonce'])

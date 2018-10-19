@@ -5,50 +5,97 @@
 ?>
 <div class="compatibuddy-tree-top">
     <div class="compatibuddy-tree-top-item">
+        <form id="compatibuddy-filters-subject">
+            <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-subject-select">Subject</label>
+            <div class="compatibuddy-flex-inputs">
+                <div class="compatibuddy-flex-input-left">
+                    <select id="compatibuddy-filters-subject-select">
+                        <option>Select a module to analyze...</option>
+                        <optgroup label="Plugins">
+                            <?php foreach ($tabData['plugins'] as $plugin) { ?>
+                                <option value="module-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?></option>
+                            <?php } ?>
+                        </optgroup>
+                        <optgroup label="Themes">
+                            <?php foreach ($tabData['themes'] as $theme) { ?>
+                                <option value="module-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?></option>
+                            <?php } ?>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="compatibuddy-flex-input-right">
+                    <input type="submit" value="Submit" class="button" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="compatibuddy-tree-top-item">
         <fieldset>
             <legend class="compatibuddy-tree-top-item-heading">Included Modules</legend>
-            <label>
-                <input type="checkbox" id="compatibuddy-filters-include-plugins" value="1" checked />
-                Plugins
-            </label>
-            <label>
-                <input type="checkbox" id="compatibuddy-filters-include-themes" value="1" checked />
-                Themes
-            </label>
+            <div class="compatibuddy-flex-inputs">
+                <div class="compatibuddy-flex-input-left">
+                    <label>
+                        <input type="checkbox" id="compatibuddy-filters-include-plugins" value="1" checked />
+                        Plugins
+                    </label>
+                </div>
+                <div class="compatibuddy-flex-input-left">
+                    <label>
+                        <input type="checkbox" id="compatibuddy-filters-include-themes" value="1" checked />
+                        Themes
+                    </label>
+                </div>
+            </div>
         </fieldset>
     </div>
     <div class="compatibuddy-tree-top-item">
         <form id="compatibuddy-filters-sort">
             <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-sort-by">Sort By</label>
-            <select id="compatibuddy-filters-sort-by">
-                <option>Select a field to sort by</option>
-                <optgroup label="Tag">
-                    <option value="tag">Tag</option>
-                </optgroup>
-                <optgroup label="Module">
-                    <option value="module-type">Module Type</option>
-                    <option value="module-name">Module Name</option>
-                </optgroup>
-                <optgroup label="Function Call">
-                    <option value="function-to-add">Function to Add</option>
-                    <option value="priority">Priority</option>
-                    <option value="file">File</option>
-                </optgroup>
-            </select>
-                <label>
-                    <input type="radio" name="compatibuddy-filters-sort-by-order" value="asc" checked /> Asc
-                </label>
-                <label>
-                    <input type="radio" name="compatibuddy-filters-sort-by-order" value="desc" /> Desc
-                </label>
-            <input type="submit" value="Sort" class="button" />
+            <div class="compatibuddy-flex-inputs">
+                <div class="compatibuddy-flex-input-left">
+                    <select id="compatibuddy-filters-sort-by">
+                        <option>Select a field to sort by...</option>
+                        <optgroup label="Tag">
+                            <option value="tag">Tag</option>
+                        </optgroup>
+                        <optgroup label="Module">
+                            <option value="module-type">Module Type</option>
+                            <option value="module-name">Module Name</option>
+                        </optgroup>
+                        <optgroup label="Function Call">
+                            <option value="function-to-add">Function to Add</option>
+                            <option value="priority">Priority</option>
+                            <option value="file">File</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="compatibuddy-flex-input-right">
+                    <label>
+                        <input type="radio" name="compatibuddy-filters-sort-by-order" value="asc" checked /> Asc
+                    </label>
+                </div>
+                <div class="compatibuddy-flex-input-right">
+                    <label>
+                        <input type="radio" name="compatibuddy-filters-sort-by-order" value="desc" /> Desc
+                    </label>
+                </div>
+                <div class="compatibuddy-flex-input-right">
+                    <input type="submit" value="Sort" class="button" />
+                </div>
+            </div>
         </form>
     </div>
     <div class="compatibuddy-tree-top-item">
         <form id="compatibuddy-filters-search">
             <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-search-text">Search</label>
-            <input id="compatibuddy-filters-search-text" type="text" class="input-text" />
-            <input type="submit" value="Submit" class="button" />
+            <div class="compatibuddy-flex-inputs">
+                <div class="compatibuddy-flex-input-left">
+                    <input id="compatibuddy-filters-search-text" type="text" class="input-text" />
+                </div>
+                <div class="compatibuddy-flex-input-right">
+                    <input type="submit" value="Submit" class="button compatibuddy-flex-input-right" />
+                </div>
+            </div>
         </form>
     </div>
 </div>

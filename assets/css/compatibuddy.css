@@ -43,3 +43,23 @@
 .compatibuddy-tree-search {
 
 }
+
+.compatibuddy-flex-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compatibuddy-flex-input-left {
+    flex: 1 1 auto;
+    margin-right: 20px;
+}
+
+.compatibuddy-flex-input-left input[type="text"], .compatibuddy-flex-input-left select {
+    width: 100%;
+}
+
+.compatibuddy-flex-input-right {
+    flex: 0 0 auto;
+    margin-left: 20px;
+}
