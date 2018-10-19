@@ -3,13 +3,51 @@
 * @var array $tabData
  */
 ?>
-<div class="tablenav top">
-    <div class="alignleft actions">
-        <form id="compatibuddy-filters-search">
+<div class="compatibuddy-tree-top">
+    <div class="compatibuddy-tree-top-item">
+        <fieldset>
+            <legend class="compatibuddy-tree-top-item-heading">Included Modules</legend>
             <label>
-                Search
-                <input type="text" class="input-text" />
+                <input type="checkbox" id="compatibuddy-filters-include-plugins" value="1" checked />
+                Plugins
             </label>
+            <label>
+                <input type="checkbox" id="compatibuddy-filters-include-themes" value="1" checked />
+                Themes
+            </label>
+        </fieldset>
+    </div>
+    <div class="compatibuddy-tree-top-item">
+        <form id="compatibuddy-filters-sort">
+            <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-sort-by">Sort By</label>
+            <select id="compatibuddy-filters-sort-by">
+                <option>Select a field to sort by</option>
+                <optgroup label="Tag">
+                    <option value="tag">Tag</option>
+                </optgroup>
+                <optgroup label="Module">
+                    <option value="module-type">Module Type</option>
+                    <option value="module-name">Module Name</option>
+                </optgroup>
+                <optgroup label="Function Call">
+                    <option value="function-to-add">Function to Add</option>
+                    <option value="priority">Priority</option>
+                    <option value="file">File</option>
+                </optgroup>
+            </select><br />
+            <label>
+                <input type="radio" name="compatibuddy-filters-sort-by-order" value="asc" checked /> Asc
+            </label>
+            <label>
+                <input type="radio" name="compatibuddy-filters-sort-by-order" value="desc" /> Desc
+            </label>
+            <input type="submit" value="Sort" class="button" />
+        </form>
+    </div>
+    <div class="compatibuddy-tree-top-item">
+        <form id="compatibuddy-filters-search">
+            <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-search-text">Search</label>
+            <input id="compatibuddy-filters-search-text" type="text" class="input-text" />
             <input type="submit" value="Submit" class="button" />
         </form>
     </div>
