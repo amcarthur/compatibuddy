@@ -6,6 +6,10 @@
     display: block;
 }
 
+.compatibuddy-tree-loading.ready {
+    display: none;
+}
+
 .compatibuddy-subject {
     background: red;
 }

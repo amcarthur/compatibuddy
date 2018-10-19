@@ -101,6 +101,9 @@
         </form>
     </div>
 </div>
+<div class="compatibuddy-tree-loading">
+    <h3>Loading...</h3>
+</div>
 <div id="compatibuddy-duplicate-filters-tree" class="compatibuddy-tree">
     <ul>
         <?php foreach ($tabData['analysis'] as $tag => $calls) { ?>

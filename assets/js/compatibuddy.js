@@ -32,6 +32,7 @@
         $filtersTree
             .on('ready.jstree', function(e) {
                 $(this).addClass('ready');
+                $('.compatibuddy-tree-loading').addClass('ready');
             })
             .on('state_ready.jstree', function() {
                 $filtersTree.on('select_node.jstree', function(e,data) {
