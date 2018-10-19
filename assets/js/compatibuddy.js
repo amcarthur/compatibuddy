@@ -28,13 +28,13 @@
             });
         });
 
-        var $duplicateFiltersTree = $('#compatibuddy-duplicate-filters-tree');
-        $duplicateFiltersTree
+        var $filtersTree = $('#compatibuddy-duplicate-filters-tree');
+        $filtersTree
             .on('ready.jstree', function(e) {
                 $(this).addClass('ready');
             })
             .on('state_ready.jstree', function() {
-                $duplicateFiltersTree.on('select_node.jstree', function(e,data) {
+                $filtersTree.on('select_node.jstree', function(e,data) {
                     if (data.node.a_attr.href !== '#') {
                         window.location.href = data.node.a_attr.href;
                     }
@@ -164,7 +164,7 @@
 
                             var functionNodeA = null;
                             $.each(nodeA.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('Function to Add')) {
                                     functionNodeA = childNode;
                                 }
@@ -172,7 +172,7 @@
 
                             var functionNodeB = null;
                             $.each(nodeB.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('Function to Add')) {
                                     functionNodeB = childNode;
                                 }
@@ -203,7 +203,7 @@
 
                             var priorityNodeA = null;
                             $.each(nodeA.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('Priority')) {
                                     priorityNodeA = childNode;
                                 }
@@ -211,7 +211,7 @@
 
                             var priorityNodeB = null;
                             $.each(nodeB.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('Priority')) {
                                     priorityNodeB = childNode;
                                 }
@@ -266,7 +266,7 @@
 
                             var fileNodeA = null;
                             $.each(nodeA.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('File')) {
                                     fileNodeA = childNode;
                                 }
@@ -274,7 +274,7 @@
 
                             var fileNodeB = null;
                             $.each(nodeB.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
                                 if (childNode.text.startsWith('File')) {
                                     fileNodeB = childNode;
                                 }
@@ -307,9 +307,9 @@
         $('#compatibuddy-filters-search').on('submit', function(e) {
             var query = $(this).find(':input[type="text"]').val().trim();
             if (query.length > 0) {
-                $duplicateFiltersTree.jstree(true).search(query);
+                $filtersTree.jstree(true).search(query);
             } else {
-                $duplicateFiltersTree.jstree(true).clear_search();
+                $filtersTree.jstree(true).clear_search();
             }
 
             return false;
@@ -328,54 +328,54 @@
             var includeThemes = $filtersIncludeThemes.is(':checked');
 
             if (!includePlugins && !includeThemes) {
-                $duplicateFiltersTree.jstree(true).hide_all();
+                $filtersTree.jstree(true).hide_all();
                 return;
             }
 
             if (includePlugins && includeThemes) {
-                $duplicateFiltersTree.jstree(true).show_all();
+                $filtersTree.jstree(true).show_all();
                 return;
             }
 
             if (!includePlugins) {
-                $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                $($filtersTree.jstree(true).get_json($filtersTree, {
                     flat: true
                 }))
                     .each(function (index, value) {
-                        var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                        var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
                         if (lvl === 2 && node.text.startsWith('Plugin')) {
-                            $duplicateFiltersTree.jstree(true).hide_node(node, true);
-                            var parent = $duplicateFiltersTree.jstree(true).get_node($duplicateFiltersTree.jstree(true).get_parent(node));
+                            $filtersTree.jstree(true).hide_node(node, true);
+                            var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
                             var allHidden = true;
                             $.each(parent.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
-                                if (!$duplicateFiltersTree.jstree(true).is_hidden(childNode)) {
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
+                                if (!$filtersTree.jstree(true).is_hidden(childNode)) {
                                     allHidden = false;
                                 }
                             });
 
                             if (allHidden) {
-                                $duplicateFiltersTree.jstree(true).hide_node(parent, true);
+                                $filtersTree.jstree(true).hide_node(parent, true);
                             }
                         }
                     });
             } else {
-                $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                $($filtersTree.jstree(true).get_json($filtersTree, {
                     flat: true
                 }))
                     .each(function (index, value) {
-                        var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                        var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
                         if (lvl === 2 && node.text.startsWith('Plugin')) {
-                            $duplicateFiltersTree.jstree(true).show_node(node, true);
-                            var parent = $duplicateFiltersTree.jstree(true).get_node($duplicateFiltersTree.jstree(true).get_parent(node));
-                            $duplicateFiltersTree.jstree(true).show_node(parent, true);
+                            $filtersTree.jstree(true).show_node(node, true);
+                            var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
+                            $filtersTree.jstree(true).show_node(parent, true);
                         }
                     });
             }
 
-            $duplicateFiltersTree.jstree(true).redraw();
+            $filtersTree.jstree(true).redraw();
 
         });
 
@@ -384,54 +384,54 @@
             var includeThemes = $filtersIncludeThemes.is(':checked');
 
             if (!includePlugins && !includeThemes) {
-                $duplicateFiltersTree.jstree(true).hide_all();
+                $filtersTree.jstree(true).hide_all();
                 return;
             }
 
             if (includePlugins && includeThemes) {
-                $duplicateFiltersTree.jstree(true).show_all();
+                $filtersTree.jstree(true).show_all();
                 return;
             }
 
             if (!includeThemes) {
-                $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                $($filtersTree.jstree(true).get_json($filtersTree, {
                     flat: true
                 }))
                     .each(function (index, value) {
-                        var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                        var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
                         if (lvl === 2 && node.text.startsWith('Theme')) {
-                            $duplicateFiltersTree.jstree(true).hide_node(node, true);
-                            var parent = $duplicateFiltersTree.jstree(true).get_node($duplicateFiltersTree.jstree(true).get_parent(node));
+                            $filtersTree.jstree(true).hide_node(node, true);
+                            var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
                             var allHidden = true;
                             $.each(parent.children, function(c_i, c_v) {
-                                var childNode = $duplicateFiltersTree.jstree(true).get_node(c_v);
-                                if (!$duplicateFiltersTree.jstree(true).is_hidden(childNode)) {
+                                var childNode = $filtersTree.jstree(true).get_node(c_v);
+                                if (!$filtersTree.jstree(true).is_hidden(childNode)) {
                                     allHidden = false;
                                 }
                             });
 
                             if (allHidden) {
-                                $duplicateFiltersTree.jstree(true).hide_node(parent, true);
+                                $filtersTree.jstree(true).hide_node(parent, true);
                             }
                         }
                     });
             } else {
-                $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                $($filtersTree.jstree(true).get_json($filtersTree, {
                     flat: true
                 }))
                     .each(function (index, value) {
-                        var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                        var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
                         if (lvl === 2 && node.text.startsWith('Theme')) {
-                            $duplicateFiltersTree.jstree(true).show_node(node, true);
-                            var parent = $duplicateFiltersTree.jstree(true).get_node($duplicateFiltersTree.jstree(true).get_parent(node));
-                            $duplicateFiltersTree.jstree(true).show_node(parent, true);
+                            $filtersTree.jstree(true).show_node(node, true);
+                            var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
+                            $filtersTree.jstree(true).show_node(parent, true);
                         }
                     });
             }
 
-            $duplicateFiltersTree.jstree(true).redraw();
+            $filtersTree.jstree(true).redraw();
         });
 
         $('#compatibuddy-filters-sort').on('submit', function() {
@@ -439,72 +439,72 @@
 
             switch (sortBy) {
                 case 'tag':
-                    var node = $duplicateFiltersTree.jstree(true).get_node('#');
-                    $duplicateFiltersTree.jstree(true).sort(node, true);
-                    $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                    var node = $filtersTree.jstree(true).get_node('#');
+                    $filtersTree.jstree(true).sort(node, true);
+                    $filtersTree.jstree(true).redraw_node(node, true);
                     break;
                 case 'module-type':
-                    $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                    $($filtersTree.jstree(true).get_json($filtersTree, {
                         flat: true
                     }))
                         .each(function (index, value) {
-                            var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                            var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
                             if (lvl === 1) {
-                                $duplicateFiltersTree.jstree(true).sort(node, true);
-                                $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                                $filtersTree.jstree(true).sort(node, true);
+                                $filtersTree.jstree(true).redraw_node(node, true);
                             }
                         });
                     break;
                 case 'module-name':
-                    $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                    $($filtersTree.jstree(true).get_json($filtersTree, {
                         flat: true
                     }))
                         .each(function (index, value) {
-                            var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                            var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
                             if (lvl === 1) {
-                                $duplicateFiltersTree.jstree(true).sort(node, true);
-                                $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                                $filtersTree.jstree(true).sort(node, true);
+                                $filtersTree.jstree(true).redraw_node(node, true);
                             }
                         });
                     break;
                 case 'function-to-add':
-                    $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                    $($filtersTree.jstree(true).get_json($filtersTree, {
                         flat: true
                     }))
                         .each(function (index, value) {
-                            var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                            var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
                             if (lvl === 1) {
-                                $duplicateFiltersTree.jstree(true).sort(node, true);
-                                $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                                $filtersTree.jstree(true).sort(node, true);
+                                $filtersTree.jstree(true).redraw_node(node, true);
                             }
                         });
                     break;
                 case 'priority':
-                    $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                    $($filtersTree.jstree(true).get_json($filtersTree, {
                         flat: true
                     }))
                         .each(function (index, value) {
-                            var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                            var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
                             if (lvl === 1) {
-                                $duplicateFiltersTree.jstree(true).sort(node, true);
-                                $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                                $filtersTree.jstree(true).sort(node, true);
+                                $filtersTree.jstree(true).redraw_node(node, true);
                             }
                         });
                     break;
                 case 'file':
-                    $($duplicateFiltersTree.jstree(true).get_json($duplicateFiltersTree, {
+                    $($filtersTree.jstree(true).get_json($filtersTree, {
                         flat: true
                     }))
                         .each(function (index, value) {
-                            var node = $duplicateFiltersTree.jstree(true).get_node(this.id);
+                            var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
                             if (lvl === 1) {
-                                $duplicateFiltersTree.jstree(true).sort(node, true);
-                                $duplicateFiltersTree.jstree(true).redraw_node(node, true);
+                                $filtersTree.jstree(true).sort(node, true);
+                                $filtersTree.jstree(true).redraw_node(node, true);
                             }
                         });
                     break;

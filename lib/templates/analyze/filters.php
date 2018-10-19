@@ -5,20 +5,21 @@
 ?>
 <div class="compatibuddy-tree-top">
     <div class="compatibuddy-tree-top-item">
-        <form id="compatibuddy-filters-subject">
+        <form id="compatibuddy-filters-subject" action="<?php echo esc_url($tabData['subjectAnalysisUri']) ?>" method="post">
             <label class="compatibuddy-tree-top-item-heading" for="compatibuddy-filters-subject-select">Subject</label>
             <div class="compatibuddy-flex-inputs">
                 <div class="compatibuddy-flex-input-left">
-                    <select id="compatibuddy-filters-subject-select">
+                    <select id="compatibuddy-filters-subject-select" name="subject">
                         <option>Select a module to analyze...</option>
+                        <option>All modules</option>
                         <optgroup label="Plugins">
                             <?php foreach ($tabData['plugins'] as $plugin) { ?>
-                                <option value="module-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?></option>
+                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?></option>
                             <?php } ?>
                         </optgroup>
                         <optgroup label="Themes">
                             <?php foreach ($tabData['themes'] as $theme) { ?>
-                                <option value="module-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?></option>
+                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?></option>
                             <?php } ?>
                         </optgroup>
                     </select>
@@ -27,6 +28,7 @@
                     <input type="submit" value="Submit" class="button" />
                 </div>
             </div>
+            <?php wp_nonce_field('compatibuddy-filter-analyze-subject') ?>
         </form>
     </div>
     <div class="compatibuddy-tree-top-item">

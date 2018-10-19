@@ -184,7 +184,7 @@ echo '</form></div>';
 
     public function compatibuddyAnalyzeAction() {
         $currentTab = (isset($_REQUEST['tab']) && $_REQUEST['tab'] === 'higherPriorityFilters')
-            ? 'higherPriorityFilters' : 'duplicateFilters';
+            ? 'higherPriorityFilters' : 'filters';
 
         $plugins = Utilities::getPlugins();
         $themes = Utilities::getThemes();
@@ -204,12 +204,44 @@ echo '</form></div>';
 
         $tabData = [];
         switch ($currentTab) {
-            case 'duplicateFilters':
+            case 'filters':
                 $addFilterScanner = new AddFilterScanner();
                 $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
+
+                $tabData['subjectAnalysisUri'] = add_query_arg(
+                    [
+                        'tab' => 'filters',
+                        'action' => 'analyze-subject'
+                    ], admin_url('admin.php?page=compatibuddy-analyze')
+                );
+
                 $tabData['plugins'] = $plugins;
                 $tabData['themes'] = $themes;
-                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+
+                if (isset($_REQUEST['action'])
+                    && $_REQUEST['action'] === 'analyze-subject'
+                    && isset($_REQUEST['subject'])
+                    && isset($_REQUEST['_wpnonce'])
+                    && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])),
+                        'compatibuddy-filter-analyze-subject')) {
+
+                    $subject = $_REQUEST['subject'];
+                    $count = 0;
+                    $subject = preg_replace('/^plugin\-/', '', $subject, -1, $count);
+
+                    if ($count === 1) {
+                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $plugins[$subject]);
+                    } else if ($count === 1) {
+                        $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
+                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $themes[$subject]);
+                    } else {
+                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                    }
+                } else {
+
+                    $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                }
+
                 break;
             case 'higherPriorityFilters':
 
@@ -239,7 +271,7 @@ echo '</form></div>';
         echo $this->templateEngine->render('analyze', [
             'title' => __('Analyze', 'compatibuddy'),
             'currentTab' => $currentTab,
-            'duplicateFiltersUri' => add_query_arg(['tab' => 'duplicateFilters'], admin_url('admin.php?page=compatibuddy-analyze')),
+            'filtersUri' => add_query_arg(['tab' => 'filters'], admin_url('admin.php?page=compatibuddy-analyze')),
             'higherPriorityFiltersUri' => add_query_arg(['tab' => 'higherPriorityFilters'], admin_url('admin.php?page=compatibuddy-analyze')),
             'tabData' => $tabData
         ]);
