@@ -167,15 +167,19 @@ echo '</form></div>';
             ? 'higherPriorityFilters' : 'duplicateFilters';
 
         $plugins = Utilities::getPlugins();
+        $themes = Utilities::getThemes();
+        $modules = array_merge($plugins, $themes);
+
         $tabData = [];
         switch ($currentTab) {
             case 'duplicateFilters':
                 $addFilterScanner = new AddFilterScanner();
                 $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
-                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($addFilterScanner->scan($plugins, true));
+                $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($addFilterScanner->scan($modules, true));
                 break;
             case 'higherPriorityFilters':
                 $tabData['plugins'] = $plugins;
+                $tabData['themes'] = $themes;
 
                 if (isset($_REQUEST['compatibuddy-higher-priority-filters-subject'])
                     && isset($_REQUEST['_wpnonce'])
@@ -189,7 +193,7 @@ echo '</form></div>';
                     }
                     $addFilterScanner = new AddFilterScanner();
                     $higherPriorityFilterAnalyzer = new HigherPriorityAddFilterAnalyzer();
-                    $analysis = $higherPriorityFilterAnalyzer->analyze($addFilterScanner->scan($plugins, true), $plugins[$subjectId]);
+                    $analysis = $higherPriorityFilterAnalyzer->analyze($addFilterScanner->scan($modules, true), $plugins[$subjectId]);
                     if (empty($analysis)) {
                         // TODO: Display message
                         break;

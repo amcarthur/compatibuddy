@@ -84,7 +84,7 @@ class AddFilterScanner implements ScannerInterface {
 
             $entry = [
                 'module' => $module,
-                'file' => $file,
+                'file' => str_replace('\\', '/', str_replace($module['absolute_directory'], basename($module['absolute_directory']), $file)),
                 'line' => $call['line'],
                 'tag' => $call['args'][0],
                 'function_to_add' => $call['args'][1]
