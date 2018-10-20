@@ -52,8 +52,28 @@ class Admin {
 
     public function adminInit() {
         register_setting('compatibuddy_options', 'compatibuddy_options', [$this, 'validateOptions']);
+
         add_settings_section('general_settings', 'General Settings', [$this, 'renderGeneralSettingsSection'], 'compatibuddy-settings');
-        add_settings_field('use_cache', 'Use Cache', [$this, 'renderUseCacheField'], 'compatibuddy-settings', 'general_settings');
+        add_settings_section('scanning_settings', 'Scanning Settings', [$this, 'renderScanningSettingsSection'], 'compatibuddy-settings');
+        add_settings_section('analysis_settings', 'Analysis Settings', [$this, 'renderAnalysisSettingsSection'], 'compatibuddy-settings');
+        add_settings_section('reporting_settings', 'Reporting Settings', [$this, 'renderReportingSettingsSection'], 'compatibuddy-settings');
+
+        /**
+         * Scanning settings
+         */
+        add_settings_field('scan_add_filter', 'Scan Add Filter', [$this, 'renderScanAddFilterField'], 'compatibuddy-settings', 'scanning_settings');
+        add_settings_field('scan_remove_filter', 'Scan Remove Filter', [$this, 'renderScanRemoveFilterField'], 'compatibuddy-settings', 'scanning_settings');
+        add_settings_field('scan_remove_all_filters', 'Scan Remove All Filters', [$this, 'renderScanRemoveAllFiltersField'], 'compatibuddy-settings', 'scanning_settings');
+        add_settings_field('scan_add_action', 'Scan Add Action', [$this, 'renderScanAddActionField'], 'compatibuddy-settings', 'scanning_settings');
+        add_settings_field('scan_remove_action', 'Scan Remove Action', [$this, 'renderScanRemoveActionField'], 'compatibuddy-settings', 'scanning_settings');
+        add_settings_field('scan_remove_all_actions', 'Scan Remove All Actions', [$this, 'renderScanRemoveAllActionsField'], 'compatibuddy-settings', 'scanning_settings');
+
+        /**
+         * Reporting settings
+         */
+        add_settings_field('report_visual', 'Visual', [$this, 'renderReportVisualField'], 'compatibuddy-settings', 'reporting_settings');
+        add_settings_field('report_user_roles', 'Limit to User Roles', [$this, 'renderReportUserRolesField'], 'compatibuddy-settings', 'reporting_settings');
+        add_settings_field('report_password_protect', 'Password Protect', [$this, 'renderReportPasswordProtectField'], 'compatibuddy-settings', 'reporting_settings');
 
         if (isset($_REQUEST['action'])) {
             $action = $_REQUEST['action'];
@@ -122,29 +142,137 @@ class Admin {
         );
     }
 
-    public function renderOptionsPage() {
-        echo '<div>
-<form action="options.php" method="post">';
-
-settings_fields('compatibuddy_options');
-do_settings_sections('compatibuddy');
-submit_button();
-echo '</form></div>';
-    }
-
     public function renderGeneralSettingsSection() {
-        echo '<p>General settings for Compatibuddy.</p>';
+        echo '<p>General settings.</p>';
     }
 
-    public function renderUseCacheField() {
+    public function renderScanningSettingsSection() {
+        echo '<p>Scanning settings.</p>';
+    }
+
+    public function renderAnalysisSettingsSection() {
+        echo '<p>Analysis settings.</p>';
+    }
+
+    public function renderReportingSettingsSection() {
+        echo '<p>Reporting settings.</p>';
+    }
+
+    public function renderScanAddFilterField() {
         $options = get_option('compatibuddy_options', []);
-        if (!$options || !isset($options['use_cache'])) {
+        if (!$options || !isset($options['scan_add_filter'])) {
             $options = [
-                'use_cache' => false
+                'scan_add_filter' => false
             ];
         }
 
-        echo '<input id="compatibuddy_options_use_cache" name="compatibuddy_options[use_cache]" type="checkbox" value="1" ' . checked(1, $options['use_cache'], false) . ' /> Automatically caches scan results.';
+        echo '<input id="compatibuddy_options_scan_add_filter" name="compatibuddy_options[scan_add_filter]" type="checkbox" value="1" ' . checked(1, $options['scan_add_filter'], false) . ' /> Scan for add_filter calls.';
+    }
+
+    public function renderScanRemoveFilterField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['scan_remove_filter'])) {
+            $options = [
+                'scan_remove_filter' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_scan_remove_filter" name="compatibuddy_options[scan_remove_filter]" type="checkbox" value="1" ' . checked(1, $options['scan_remove_filter'], false) . ' /> Scan for remove_filter calls.';
+    }
+
+    public function renderScanRemoveAllFiltersField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['scan_remove_all_filters'])) {
+            $options = [
+                'scan_remove_all_filters' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_scan_remove_all_filters" name="compatibuddy_options[scan_remove_all_filters]" type="checkbox" value="1" ' . checked(1, $options['scan_remove_all_filters'], false) . ' /> Scan for remove_all_filters calls.';
+    }
+
+    public function renderScanAddActionField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['scan_add_action'])) {
+            $options = [
+                'scan_add_action' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_scan_add_action" name="compatibuddy_options[scan_add_action]" type="checkbox" value="1" ' . checked(1, $options['scan_add_action'], false) . ' /> Scan for add_action calls.';
+    }
+
+    public function renderScanRemoveActionField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['scan_remove_action'])) {
+            $options = [
+                'scan_remove_action' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_scan_remove_action" name="compatibuddy_options[scan_remove_action]" type="checkbox" value="1" ' . checked(1, $options['scan_remove_action'], false) . ' /> Scan for remove_action calls.';
+    }
+
+    public function renderScanRemoveAllActionsField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['scan_remove_all_actions'])) {
+            $options = [
+                'scan_remove_all_actions' => false
+            ];
+        }
+
+        echo '<input id="compatibuddy_options_scan_remove_all_actions" name="compatibuddy_options[scan_remove_all_actions]" type="checkbox" value="1" ' . checked(1, $options['scan_remove_all_actions'], false) . ' /> Scan for remove_all_actions calls.';
+    }
+
+    public function renderReportVisualField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['report_visual'])) {
+            $options = [
+                'report_visual' => 'tree'
+            ];
+        }
+
+        $visuals = [
+            'tree' => __('Tree', 'compatibuddy'),
+            'pie' => __('Pie Chart', 'compatibuddy'),
+            'bar' => __('Bar Graph', 'compatibuddy'),
+        ];
+
+        echo '
+<select id="compatibuddy_options_report_visual" name="compatibuddy_options[report_visual]">';
+        foreach ($visuals as $key => $value) {
+            echo '<option value="' . esc_attr($key) . '" ' . ($options['report_visual'] === $key ? 'selected' : '') . '>' . esc_html($value) . '</option>';
+        }
+        echo '
+</select>';
+    }
+
+    public function renderReportUserRolesField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['report_user_roles'])) {
+            $options = [
+                'report_user_roles' => []
+            ];
+        }
+
+        $roles = get_editable_roles();
+        foreach ($roles as $key => $role) {
+            echo '<input type="checkbox" name="compatibuddy_options[report_user_roles][]" value="'
+                . esc_attr($key) . '" ' . (in_array($key, $options['report_user_roles']) ? 'checked' : '') . ' /> '
+                . esc_html(translate_user_role($role['name'])) . '<br />';
+        }
+    }
+
+    public function renderReportPasswordProtectField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['report_password_protect'])) {
+            $options = [
+                'report_password_protect' => ''
+            ];
+        }
+
+        echo '<input type="text" id="compatibuddy_options_report_password_protect" name="compatibuddy_options[report_password_protect]" value="'
+            . esc_attr($options['report_password_protect']) . '" />';
     }
 
     public function validateOptions($options) {

@@ -55,7 +55,15 @@ class Core {
         $options = get_option('compatibuddy_options');
         if (!$options) {
             add_option('compatibuddy_options', [
-                'use_cache' => true
+                'scan_add_filter' => true,
+                'scan_remove_filter' => true,
+                'scan_remove_all_filters' => true,
+                'scan_add_action' => true,
+                'scan_remove_action' => true,
+                'scan_remove_all_actions' => true,
+                'report_visual' => 'tree',
+                'report_user_roles' => [],
+                'report_password_protect' => '',
             ]);
         }
     }
