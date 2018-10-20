@@ -3,9 +3,11 @@
 <div>
     <form action="options.php" method="post">
 
-        <?php settings_fields('compatibuddy_options'); ?>
-        <?php do_settings_sections('compatibuddy-settings'); ?>
+        <?php
+        settings_fields('compatibuddy_options');
+        do_settings_sections('compatibuddy-settings');
+        submit_button(__('Save Changes', 'compatibuddy'));
+        ?>
 
-        <input name="Submit" class="button button-primary" type="submit" value="<?php echo __('Save Changes', 'compatibuddy'); ?>" />
     </form>
 </div>
