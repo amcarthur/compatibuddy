@@ -359,11 +359,13 @@ class Admin {
 
                     if ($count === 1) {
                         $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $plugins[$subject]);
-                    } else if ($count === 1) {
-                        $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
-                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $themes[$subject]);
                     } else {
-                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                        $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
+                        if ($count === 1) {
+                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $themes[$subject]);
+                        } else {
+                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                        }
                     }
                 } else {
 
