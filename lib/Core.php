@@ -30,10 +30,16 @@ class Core {
     private $admin;
 
     /**
+     * @var Reports
+     */
+    private $reports;
+
+    /**
      * Initializes member variables.
      */
     public function __construct() {
         $this->admin = new Admin();
+        $this->reports = new Reports();
         $this->setup();
     }
 
@@ -49,6 +55,7 @@ class Core {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 
         $this->admin->setup();
+        $this->reports->setup();
     }
 
     public function activate() {
@@ -71,27 +78,60 @@ class Core {
 
         $this->init();
 
+        /**
+         * 'publish_posts' => 'publish_compatibuddyreports',
+        'edit_posts' => 'edit_compatibuddyreports',
+        'edit_others_posts' => 'edit_others_compatibuddyreports',
+        'read_private_posts' => 'read_private_compatibuddyreports',
+        'edit_post' => 'edit_compatibuddyreport',
+        'edit_private_posts' => 'edit_private_compatibuddyreports',
+        'edit_published_posts' => 'edit_published_compatibuddyreports',
+        'delete_post' => 'delete_compatibuddyreport',
+        'delete_posts' => 'delete_compatibuddyreports',
+        'create_posts' => 'create_compatibuddyreports',
+        'delete_others_posts'  => 'delete_other_compatibuddyreports',
+        'delete_published_posts'  => 'delete_published_compatibuddyreports',
+        'delete_private_posts'  => 'delete_private_compatibuddyreports',
+        'read_post' => 'read_compatibuddyreport',
+        'read' => 'read',
+         */
         $role = get_role('administrator');
-        $role->add_cap('publish_compatibuddyreports');
-        $role->add_cap('edit_compatibuddyreports');
-        $role->add_cap('edit_others_compatibuddyreports');
-        $role->add_cap('read_private_compatibuddyreports');
-        $role->add_cap('edit_compatibuddyreport');
-        $role->add_cap('delete_compatibuddyreport');
-        $role->add_cap('read_compatibuddyreport');
+        $role->add_cap('publish_compatibuddy_reports');
+        $role->add_cap('edit_compatibuddy_reports');
+        $role->add_cap('edit_others_compatibuddy_reports');
+        $role->add_cap('edit_private_compatibuddy_reports');
+        $role->add_cap('edit_published_compatibuddy_reports');
+        $role->add_cap('read_private_compatibuddy_reports');
+        $role->add_cap('edit_compatibuddy_report');
+        $role->add_cap('edit_compatibuddy_reports');
+        $role->add_cap('delete_compatibuddy_report');
+        $role->add_cap('delete_compatibuddy_reports');
+        $role->add_cap('delete_other_compatibuddy_reports');
+        $role->add_cap('delete_private_compatibuddy_reports');
+        $role->add_cap('delete_published_compatibuddy_reports');
+        $role->add_cap('create_compatibuddy_reports');
+        $role->add_cap('read_compatibuddy_report');
 
         flush_rewrite_rules();
     }
 
     public function deactivate() {
         $role = get_role('administrator');
-        $role->remove_cap('publish_compatibuddyreports');
-        $role->remove_cap('edit_compatibuddyreports');
-        $role->remove_cap('edit_others_compatibuddyreports');
-        $role->remove_cap('read_private_compatibuddyreports');
-        $role->remove_cap('edit_compatibuddyreport');
-        $role->remove_cap('delete_compatibuddyreport');
-        $role->remove_cap('read_compatibuddyreport');
+        $role->remove_cap('publish_compatibuddy_reports');
+        $role->remove_cap('edit_compatibuddy_reports');
+        $role->remove_cap('edit_others_compatibuddy_reports');
+        $role->remove_cap('edit_private_compatibuddy_reports');
+        $role->remove_cap('edit_published_compatibuddy_reports');
+        $role->remove_cap('read_private_compatibuddy_reports');
+        $role->remove_cap('edit_compatibuddy_report');
+        $role->remove_cap('edit_compatibuddy_reports');
+        $role->remove_cap('delete_compatibuddy_report');
+        $role->remove_cap('delete_compatibuddy_reports');
+        $role->remove_cap('delete_other_compatibuddy_reports');
+        $role->remove_cap('delete_private_compatibuddy_reports');
+        $role->remove_cap('delete_published_compatibuddy_reports');
+        $role->remove_cap('create_compatibuddy_reports');
+        $role->remove_cap('read_compatibuddy_report');
     }
 
     public static function uninstall() {
@@ -122,23 +162,30 @@ class Core {
 
                 ],
                 'exclude_from_search' => true,
-                'publicly_queryable' => false,
+                'publicly_queryable' => true,
                 'show_in_nav_menus' => false,
                 'show_ui' => true,
                 'show_in_menu' => false,
                 'menu_position' => 5,
                 'has_archive' => true,
-                'rewrite' => array('slug' => 'compatibuddy-reports'),
-                'capability_type' => 'compatibuddyreport',
-                'capabilities' => array(
-                    'publish_posts' => 'publish_compatibuddyreports',
-                    'edit_posts' => 'edit_compatibuddyreports',
-                    'edit_others_posts' => 'edit_others_compatibuddyreports',
-                    'read_private_posts' => 'read_private_compatibuddyreports',
-                    'edit_post' => 'edit_compatibuddyreport',
-                    'delete_post' => 'delete_compatibuddyreport',
-                    'read_post' => 'read_compatibuddyreport',
-                ),
+                'rewrite' => ['slug' => 'compatibuddy-reports'],
+                'capability_type' => ['compatibuddy_report', 'compatibuddy_reports'],
+                'capabilities' => [
+                    'publish_posts' => 'publish_compatibuddy_reports',
+                    'edit_posts' => 'edit_compatibuddy_reports',
+                    'edit_others_posts' => 'edit_others_compatibuddy_reports',
+                    'read_private_posts' => 'read_private_compatibuddy_reports',
+                    'edit_post' => 'edit_compatibuddy_report',
+                    'edit_private_posts' => 'edit_private_compatibuddy_reports',
+                    'edit_published_posts' => 'edit_published_compatibuddy_reports',
+                    'delete_post' => 'delete_compatibuddy_report',
+                    'delete_posts' => 'delete_compatibuddy_reports',
+                    'create_posts' => 'create_compatibuddy_reports',
+                    'delete_others_posts'  => 'delete_other_compatibuddy_reports',
+                    'delete_published_posts'  => 'delete_published_compatibuddy_reports',
+                    'delete_private_posts'  => 'delete_private_compatibuddy_reports',
+                    'read_post' => 'read_compatibuddy_report'
+                ],
                 'map_meta_cap' => true
             ]
         );
@@ -166,6 +213,12 @@ class Core {
             plugins_url('/assets/js/jstree/jstree' . $suffix . '.js',
                 Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
             ['jquery']
+        );
+
+        wp_enqueue_script(
+            'Chart',
+            plugins_url('/assets/js/Chart' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE))
         );
 
         // TODO: add .min
