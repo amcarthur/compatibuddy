@@ -125,6 +125,8 @@ class Core {
                 'publicly_queryable' => false,
                 'show_in_nav_menus' => false,
                 'show_ui' => true,
+                'show_in_menu' => false,
+                'menu_position' => 5,
                 'has_archive' => true,
                 'rewrite' => array('slug' => 'compatibuddy-reports'),
                 'capability_type' => 'compatibuddyreport',

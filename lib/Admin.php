@@ -135,6 +135,14 @@ class Admin {
         add_submenu_page(
             'compatibuddy',
             'Compatibuddy',
+            'Reports',
+            'activate_plugins',
+            'edit.php?post_type=compatibuddy_report'
+        );
+
+        add_submenu_page(
+            'compatibuddy',
+            'Compatibuddy',
             'Settings',
             'activate_plugins',
             'compatibuddy-settings',
