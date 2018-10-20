@@ -42,8 +42,10 @@ class Core {
      */
     public function setup() {
         register_activation_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'activate']);
+        register_deactivation_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [$this, 'deactivate']);
         register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [__CLASS__, 'uninstall']);
 
+        add_action('init', [$this, 'init']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
 
         $this->admin->setup();
@@ -66,11 +68,78 @@ class Core {
                 'report_password_protect' => '',
             ]);
         }
+
+        $this->init();
+
+        $role = get_role('administrator');
+        $role->add_cap('publish_compatibuddyreports');
+        $role->add_cap('edit_compatibuddyreports');
+        $role->add_cap('edit_others_compatibuddyreports');
+        $role->add_cap('read_private_compatibuddyreports');
+        $role->add_cap('edit_compatibuddyreport');
+        $role->add_cap('delete_compatibuddyreport');
+        $role->add_cap('read_compatibuddyreport');
+
+        flush_rewrite_rules();
+    }
+
+    public function deactivate() {
+        $role = get_role('administrator');
+        $role->remove_cap('publish_compatibuddyreports');
+        $role->remove_cap('edit_compatibuddyreports');
+        $role->remove_cap('edit_others_compatibuddyreports');
+        $role->remove_cap('read_private_compatibuddyreports');
+        $role->remove_cap('edit_compatibuddyreport');
+        $role->remove_cap('delete_compatibuddyreport');
+        $role->remove_cap('read_compatibuddyreport');
     }
 
     public static function uninstall() {
         Database::dropSchema();
         delete_option('compatibuddy_options');
+    }
+
+    public function init() {
+        register_post_type( 'compatibuddy_report',
+            [
+                'labels' => [
+                    'name' => __('Compatibuddy Reports', 'compatibuddy'),
+                    'singular_name' => __('Compatibuddy Report', 'compatibuddy'),
+                    'add_new' => __('Add New', 'compatibuddy'),
+                    'add_new_item' => __('Add New Report', 'compatibuddy'),
+                    'edit_item' => __('Edit Report', 'compatibuddy'),
+                    'new_item' => __('New Report', 'compatibuddy'),
+                    'view_item' => __('View Report', 'compatibuddy'),
+                    'view_items' => __('View Reports', 'compatibuddy'),
+                    'search_items' => __('Search Reports', 'compatibuddy'),
+                    'not_found' => __('No reports found', 'compatibuddy'),
+                    'not_found_in_trash' => __('No reports found in trash', 'compatibuddy'),
+                    'all_items' => __('All Reports', 'compatibuddy'),
+                    'archives' => __('Report Archives', 'compatibuddy'),
+                    'attributes' => __('Report Attributes', 'compatibuddy'),
+                    'insert_into_item' => __('Insert into report', 'compatibuddy'),
+                    'uploaded_to_this_item' => __('Uploaded to this report', 'compatibuddy')
+
+                ],
+                'exclude_from_search' => true,
+                'publicly_queryable' => false,
+                'show_in_nav_menus' => false,
+                'show_ui' => true,
+                'has_archive' => true,
+                'rewrite' => array('slug' => 'compatibuddy-reports'),
+                'capability_type' => 'compatibuddyreport',
+                'capabilities' => array(
+                    'publish_posts' => 'publish_compatibuddyreports',
+                    'edit_posts' => 'edit_compatibuddyreports',
+                    'edit_others_posts' => 'edit_others_compatibuddyreports',
+                    'read_private_posts' => 'read_private_compatibuddyreports',
+                    'edit_post' => 'edit_compatibuddyreport',
+                    'delete_post' => 'delete_compatibuddyreport',
+                    'read_post' => 'read_compatibuddyreport',
+                ),
+                'map_meta_cap' => true
+            ]
+        );
     }
 
     public function enqueue_scripts($hook) {
