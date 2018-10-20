@@ -53,6 +53,7 @@ class Core {
 
         add_action('init', [$this, 'init']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_filter( 'map_meta_cap', [$this, 'mapMetaCap'], 10, 4 );
 
         $this->admin->setup();
         $this->reports->setup();
@@ -78,60 +79,21 @@ class Core {
 
         $this->init();
 
-        /**
-         * 'publish_posts' => 'publish_compatibuddyreports',
-        'edit_posts' => 'edit_compatibuddyreports',
-        'edit_others_posts' => 'edit_others_compatibuddyreports',
-        'read_private_posts' => 'read_private_compatibuddyreports',
-        'edit_post' => 'edit_compatibuddyreport',
-        'edit_private_posts' => 'edit_private_compatibuddyreports',
-        'edit_published_posts' => 'edit_published_compatibuddyreports',
-        'delete_post' => 'delete_compatibuddyreport',
-        'delete_posts' => 'delete_compatibuddyreports',
-        'create_posts' => 'create_compatibuddyreports',
-        'delete_others_posts'  => 'delete_other_compatibuddyreports',
-        'delete_published_posts'  => 'delete_published_compatibuddyreports',
-        'delete_private_posts'  => 'delete_private_compatibuddyreports',
-        'read_post' => 'read_compatibuddyreport',
-        'read' => 'read',
-         */
         $role = get_role('administrator');
-        $role->add_cap('publish_compatibuddy_reports');
-        $role->add_cap('edit_compatibuddy_reports');
-        $role->add_cap('edit_others_compatibuddy_reports');
-        $role->add_cap('edit_private_compatibuddy_reports');
-        $role->add_cap('edit_published_compatibuddy_reports');
-        $role->add_cap('read_private_compatibuddy_reports');
-        $role->add_cap('edit_compatibuddy_report');
-        $role->add_cap('edit_compatibuddy_reports');
-        $role->add_cap('delete_compatibuddy_report');
-        $role->add_cap('delete_compatibuddy_reports');
-        $role->add_cap('delete_other_compatibuddy_reports');
-        $role->add_cap('delete_private_compatibuddy_reports');
-        $role->add_cap('delete_published_compatibuddy_reports');
-        $role->add_cap('create_compatibuddy_reports');
-        $role->add_cap('read_compatibuddy_report');
+        $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
+        foreach ($capabilities as $capability) {
+            $role->add_cap($capability);
+        }
 
         flush_rewrite_rules();
     }
 
     public function deactivate() {
         $role = get_role('administrator');
-        $role->remove_cap('publish_compatibuddy_reports');
-        $role->remove_cap('edit_compatibuddy_reports');
-        $role->remove_cap('edit_others_compatibuddy_reports');
-        $role->remove_cap('edit_private_compatibuddy_reports');
-        $role->remove_cap('edit_published_compatibuddy_reports');
-        $role->remove_cap('read_private_compatibuddy_reports');
-        $role->remove_cap('edit_compatibuddy_report');
-        $role->remove_cap('edit_compatibuddy_reports');
-        $role->remove_cap('delete_compatibuddy_report');
-        $role->remove_cap('delete_compatibuddy_reports');
-        $role->remove_cap('delete_other_compatibuddy_reports');
-        $role->remove_cap('delete_private_compatibuddy_reports');
-        $role->remove_cap('delete_published_compatibuddy_reports');
-        $role->remove_cap('create_compatibuddy_reports');
-        $role->remove_cap('read_compatibuddy_report');
+        $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
+        foreach ($capabilities as $capability) {
+            $role->remove_cap($capability);
+        }
     }
 
     public static function uninstall() {
@@ -143,8 +105,8 @@ class Core {
         register_post_type( 'compatibuddy_report',
             [
                 'labels' => [
-                    'name' => __('Compatibuddy Reports', 'compatibuddy'),
-                    'singular_name' => __('Compatibuddy Report', 'compatibuddy'),
+                    'name' => __('Reports', 'compatibuddy'),
+                    'singular_name' => __('Report', 'compatibuddy'),
                     'add_new' => __('Add New', 'compatibuddy'),
                     'add_new_item' => __('Add New Report', 'compatibuddy'),
                     'edit_item' => __('Edit Report', 'compatibuddy'),
@@ -170,25 +132,50 @@ class Core {
                 'has_archive' => true,
                 'rewrite' => ['slug' => 'compatibuddy-reports'],
                 'capability_type' => ['compatibuddy_report', 'compatibuddy_reports'],
-                'capabilities' => [
-                    'publish_posts' => 'publish_compatibuddy_reports',
-                    'edit_posts' => 'edit_compatibuddy_reports',
-                    'edit_others_posts' => 'edit_others_compatibuddy_reports',
-                    'read_private_posts' => 'read_private_compatibuddy_reports',
-                    'edit_post' => 'edit_compatibuddy_report',
-                    'edit_private_posts' => 'edit_private_compatibuddy_reports',
-                    'edit_published_posts' => 'edit_published_compatibuddy_reports',
-                    'delete_post' => 'delete_compatibuddy_report',
-                    'delete_posts' => 'delete_compatibuddy_reports',
-                    'create_posts' => 'create_compatibuddy_reports',
-                    'delete_others_posts'  => 'delete_other_compatibuddy_reports',
-                    'delete_published_posts'  => 'delete_published_compatibuddy_reports',
-                    'delete_private_posts'  => 'delete_private_compatibuddy_reports',
-                    'read_post' => 'read_compatibuddy_report'
-                ],
+                'capabilities' => $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports'),
                 'map_meta_cap' => true
             ]
         );
+    }
+
+    public function mapMetaCap($caps, $cap, $userId, $args) {
+        /* If editing, deleting, or reading a movie, get the post and post type object. */
+        if ( 'edit_compatibuddy_report' == $cap || 'delete_compatibuddy_report' == $cap || 'read_compatibuddy_report' == $cap ) {
+            $post = get_post( $args[0] );
+            $post_type = get_post_type_object( $post->post_type );
+
+            /* Set an empty array for the caps. */
+            $caps = array();
+        }
+
+        /* If editing a movie, assign the required capability. */
+        if ( 'edit_compatibuddy_report' == $cap ) {
+            if ( $userId == $post->post_author )
+                $caps[] = $post_type->cap->edit_posts;
+            else
+                $caps[] = $post_type->cap->edit_others_posts;
+        }
+
+        /* If deleting a movie, assign the required capability. */
+        elseif ( 'delete_compatibuddy_report' == $cap ) {
+            if ( $userId == $post->post_author )
+                $caps[] = $post_type->cap->delete_posts;
+            else
+                $caps[] = $post_type->cap->delete_others_posts;
+        }
+
+        /* If reading a private movie, assign the required capability. */
+        elseif ( 'read_compatibuddy_report' == $cap ) {
+
+            if ( 'private' != $post->post_status )
+                $caps[] = 'read';
+            elseif ( $userId == $post->post_author )
+                $caps[] = 'read';
+            else
+                $caps[] = $post_type->cap->read_private_posts;
+        }
+        /* Return the capabilities required by the user. */
+        return $caps;
     }
 
     public function enqueue_scripts($hook) {
@@ -237,5 +224,25 @@ class Core {
                 'ajax_nonce' => wp_create_nonce('compatibuddy-ajax')
             ]
         );
+    }
+
+    private function compileReportPostTypeCapabilities($singular = 'post', $plural = 'posts') {
+        return [
+            'edit_post'      => "edit_$singular",
+            'read_post'      => "read_$singular",
+            'delete_post'        => "delete_$singular",
+            'edit_posts'         => "edit_$plural",
+            'edit_others_posts'  => "edit_others_$plural",
+            'publish_posts'      => "publish_$plural",
+            'read_private_posts'     => "read_private_$plural",
+            'read'                   => "read",
+            'delete_posts'           => "delete_$plural",
+            'delete_private_posts'   => "delete_private_$plural",
+            'delete_published_posts' => "delete_published_$plural",
+            'delete_others_posts'    => "delete_others_$plural",
+            'edit_private_posts'     => "edit_private_$plural",
+            'edit_published_posts'   => "edit_published_$plural",
+            'create_posts'           => "edit_$plural",
+        ];
     }
 }

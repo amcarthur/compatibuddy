@@ -38,7 +38,8 @@ class Environment {
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
         'lib/Admin.php',
         'lib/Tables/ScanPluginsTable.php',
-        'lib/Tables/ScanThemesTable.php'
+        'lib/Tables/ScanThemesTable.php',
+        'lib/Reports.php'
     ];
 
     /**

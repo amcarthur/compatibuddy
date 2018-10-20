@@ -81,6 +81,14 @@ class Utilities {
     }
 
     /**
+     * Returns an array of all WordPress plugins and themes combined.
+     * @return array
+     */
+    public static function getModules() {
+        return array_merge(self::getPlugins(), self::getThemes());
+    }
+
+    /**
      * Returns an array of PHP files in a specified directory.
      * @param string $directory
      * @return array
