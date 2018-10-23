@@ -39,6 +39,9 @@ class Admin {
     public function setup() {
         add_action('admin_init', [$this, 'adminInit']);
         add_action('admin_menu', [$this, 'adminMenu']);
+        add_action('add_meta_boxes', [$this, 'addMetaBoxes']);
+        add_action('save_post_compatibuddy_report', [$this, 'saveReport'], 10, 3);
+
         if (is_admin()) {
             add_action('wp_ajax_compatibuddy_scan_plugin', [$this, 'ajax_scan_plugin']);
             add_action('wp_ajax_compatibuddy_scan_theme', [$this, 'ajax_scan_theme']);
@@ -71,9 +74,10 @@ class Admin {
         /**
          * Reporting settings
          */
+        add_settings_field('report_automatic', 'Automatic Reports', [$this, 'renderReportAutomaticField'], 'compatibuddy-settings', 'reporting_settings');
         add_settings_field('report_visual', 'Visual', [$this, 'renderReportVisualField'], 'compatibuddy-settings', 'reporting_settings');
-        add_settings_field('report_user_roles', 'Limit to User Roles', [$this, 'renderReportUserRolesField'], 'compatibuddy-settings', 'reporting_settings');
-        add_settings_field('report_password_protect', 'Password Protect', [$this, 'renderReportPasswordProtectField'], 'compatibuddy-settings', 'reporting_settings');
+        add_settings_field('report_visibility', 'Visibility', [$this, 'renderReportVisibilityField'], 'compatibuddy-settings', 'reporting_settings');
+        add_settings_field('report_user_roles', 'Restrict Access to User Roles', [$this, 'renderReportUserRolesField'], 'compatibuddy-settings', 'reporting_settings');
 
         if (isset($_REQUEST['action'])) {
             $action = $_REQUEST['action'];
@@ -232,6 +236,18 @@ class Admin {
         echo '<input id="compatibuddy_options_scan_remove_all_actions" name="compatibuddy_options[scan_remove_all_actions]" type="checkbox" value="1" ' . checked(1, $options['scan_remove_all_actions'], false) . ' /> Scan for remove_all_actions calls.';
     }
 
+    public function renderReportAutomaticField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['report_automatic'])) {
+            $options = [
+                'report_automatic' => false
+            ];
+        }
+
+        echo '<input type="checkbox" id="compatibuddy_options_report_automatic" name="compatibuddy_options[report_automatic]" value="1" '
+            . checked(1, $options['report_automatic'], false) . ' /> Enable Automatic Reports';
+    }
+
     public function renderReportVisualField() {
         $options = get_option('compatibuddy_options', []);
         if (!$options || !isset($options['report_visual'])) {
@@ -255,6 +271,22 @@ class Admin {
 </select>';
     }
 
+    public function renderReportVisibilityField() {
+        $options = get_option('compatibuddy_options', []);
+        if (!$options || !isset($options['report_visibility'])) {
+            $options = [
+                'report_visibility' => 'public',
+                'report_password' => ''
+            ];
+        }
+
+        echo '<input type="radio" name="compatibuddy_options[report_visibility]" value="public" ' . ($options['report_visibility'] === 'public' ? 'checked' : '') . ' /> Public<br />';
+        echo '<input type="radio" name="compatibuddy_options[report_visibility]" value="private" ' . ($options['report_visibility'] === 'private' ? 'checked' : '') . ' /> Private<br />';
+        echo '<input type="radio" name="compatibuddy_options[report_visibility]" value="password" ' . ($options['report_visibility'] === 'password' ? 'checked' : '') . ' /> Password Protected<br />';
+        echo '<input type="text" id="compatibuddy_options_report_password" name="compatibuddy_options[report_password]" placeholder="' . __('Password', 'compatibuddy') . '" value="'
+            . esc_attr($options['report_password']) . '" />';
+    }
+
     public function renderReportUserRolesField() {
         $options = get_option('compatibuddy_options', []);
         if (!$options || !isset($options['report_user_roles'])) {
@@ -271,20 +303,68 @@ class Admin {
         }
     }
 
-    public function renderReportPasswordProtectField() {
-        $options = get_option('compatibuddy_options', []);
-        if (!$options || !isset($options['report_password_protect'])) {
-            $options = [
-                'report_password_protect' => ''
-            ];
-        }
-
-        echo '<input type="text" id="compatibuddy_options_report_password_protect" name="compatibuddy_options[report_password_protect]" value="'
-            . esc_attr($options['report_password_protect']) . '" />';
-    }
-
     public function validateOptions($options) {
         return $options;
+    }
+
+    public function addMetaBoxes() {
+        add_meta_box(
+            'compatibuddy_report_user_roles',
+            __('Restrict Access to User Roles', 'compatibuddy'),
+            [$this, 'renderReportUserRolesMetaBox'],
+            'compatibuddy_report',
+            'side',
+            'default'
+        );
+    }
+
+    public function renderReportUserRolesMetaBox() {
+        global $post;
+
+        wp_nonce_field('compatibuddy_save_report', 'compatibuddy_save_report_user_roles_nonce');
+
+        $currentValues = get_post_meta($post->ID, 'compatibuddy_report_user_roles', true);
+        $roles = get_editable_roles();
+        foreach ($roles as $key => $role) {
+            echo '<input type="checkbox" name="compatibuddy_report_user_roles[]" value="'
+                . esc_attr($key) . '" ' . (!empty($currentValues) && in_array($key, $currentValues) ? 'checked' : '') . ' /> '
+                . esc_html(translate_user_role($role['name'])) . '<br />';
+        }
+    }
+
+    public function saveReport($post_id, $post, $update) {
+        if (wp_is_post_revision($post_id)) {
+            return;
+        }
+
+        if ('auto-draft' === $post->post_status) {
+            return;
+        }
+
+        if (defined ('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        if (!current_user_can( 'edit_post', $post_id)) {
+            return;
+        }
+
+        if (!isset($_POST['compatibuddy_save_report_user_roles_nonce'])
+            || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['compatibuddy_save_report_user_roles_nonce'])),
+                'compatibuddy_save_report')) {
+            return;
+        }
+
+        $newUserRoles = [];
+        $roles = get_editable_roles();
+        foreach ($roles as $key => $role) {
+            if (isset($_POST['compatibuddy_report_user_roles'])
+                && in_array($key, $_POST['compatibuddy_report_user_roles'])) {
+                $newUserRoles[] = $key;
+            }
+        }
+
+        update_post_meta($post_id, 'compatibuddy_report_user_roles', $newUserRoles);
     }
 
     public function compatibuddyAction() {
@@ -477,5 +557,25 @@ class Admin {
 
         $addFilterScanner->scan([$theme]);
         wp_die();
+    }
+
+    public function changeReportVisibilityMetabox() {
+        global $post;
+        if ($post->post_type !== 'compatibuddy_report')
+            return;
+
+        $post->post_password = '';
+        $visibility = 'private';
+        $visibility_trans = __('Private');
+        ?>
+        <script type="text/javascript">
+            (function($){
+                try {
+                    $('#post-visibility-display').text('<?php echo $visibility_trans; ?>');
+                    $('#hidden-post-visibility').val('<?php echo $visibility; ?>');
+                } catch(err){}
+            }) (jQuery);
+        </script>
+        <?php
     }
 }

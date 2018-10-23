@@ -52,8 +52,9 @@ class Core {
         register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [__CLASS__, 'uninstall']);
 
         add_action('init', [$this, 'init']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-        add_filter( 'map_meta_cap', [$this, 'mapMetaCap'], 10, 4 );
+        add_action('admin_enqueue_scripts', [$this, 'enqueueScripts']);
+        add_action('template_redirect', [$this, 'templateRedirect']);
+        add_action('the_content', [$this, 'theContent']);
 
         $this->admin->setup();
         $this->reports->setup();
@@ -79,21 +80,37 @@ class Core {
 
         $this->init();
 
-        $role = get_role('administrator');
-        $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
-        foreach ($capabilities as $capability) {
-            $role->add_cap($capability);
+        add_role('compatibuddy-guest', 'Compatibuddy Guest', ['read']);
+
+        $roles = get_editable_roles();
+        foreach ($roles as $key => $data) {
+            $role = get_role($key);
+            $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
+            foreach ($capabilities as $capability) {
+                if ($key === 'administrator') {
+                    $role->add_cap($capability);
+                } else {
+                    $role->remove_cap($capability);
+                }
+            }
         }
 
         flush_rewrite_rules();
     }
 
     public function deactivate() {
-        $role = get_role('administrator');
-        $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
-        foreach ($capabilities as $capability) {
-            $role->remove_cap($capability);
+        $roles = get_editable_roles();
+        foreach ($roles as $key => $data) {
+            $role = get_role($key);
+            $capabilities = $this->compileReportPostTypeCapabilities('compatibuddy_report', 'compatibuddy_reports');
+            foreach ($capabilities as $capability) {
+                while ($role->has_cap($capability)) {
+                    $role->remove_cap($capability);
+                }
+            }
         }
+
+        remove_role('compatibuddy-guest');
     }
 
     public static function uninstall() {
@@ -136,49 +153,14 @@ class Core {
                 'map_meta_cap' => true
             ]
         );
+
+        if (!is_user_logged_in()) {
+            $user = wp_get_current_user();
+            $user->set_role('compatibuddy-visitor');
+        }
     }
 
-    public function mapMetaCap($caps, $cap, $userId, $args) {
-        /* If editing, deleting, or reading a movie, get the post and post type object. */
-        if ( 'edit_compatibuddy_report' == $cap || 'delete_compatibuddy_report' == $cap || 'read_compatibuddy_report' == $cap ) {
-            $post = get_post( $args[0] );
-            $post_type = get_post_type_object( $post->post_type );
-
-            /* Set an empty array for the caps. */
-            $caps = array();
-        }
-
-        /* If editing a movie, assign the required capability. */
-        if ( 'edit_compatibuddy_report' == $cap ) {
-            if ( $userId == $post->post_author )
-                $caps[] = $post_type->cap->edit_posts;
-            else
-                $caps[] = $post_type->cap->edit_others_posts;
-        }
-
-        /* If deleting a movie, assign the required capability. */
-        elseif ( 'delete_compatibuddy_report' == $cap ) {
-            if ( $userId == $post->post_author )
-                $caps[] = $post_type->cap->delete_posts;
-            else
-                $caps[] = $post_type->cap->delete_others_posts;
-        }
-
-        /* If reading a private movie, assign the required capability. */
-        elseif ( 'read_compatibuddy_report' == $cap ) {
-
-            if ( 'private' != $post->post_status )
-                $caps[] = 'read';
-            elseif ( $userId == $post->post_author )
-                $caps[] = 'read';
-            else
-                $caps[] = $post_type->cap->read_private_posts;
-        }
-        /* Return the capabilities required by the user. */
-        return $caps;
-    }
-
-    public function enqueue_scripts($hook) {
+    public function enqueueScripts($hook) {
         $suffix = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '' : '.min';
 
         wp_enqueue_style(
@@ -224,6 +206,57 @@ class Core {
                 'ajax_nonce' => wp_create_nonce('compatibuddy-ajax')
             ]
         );
+    }
+
+    public function templateRedirect() {
+        global $post;
+        if (get_post_type() === 'compatibuddy_report') {
+            $user = wp_get_current_user();
+
+            if (is_super_admin($user->ID)) {
+                return;
+            }
+
+            $roles = get_post_meta($post->ID, 'compatibuddy_report_user_roles', true);
+
+            if (empty($roles)) {
+                return;
+            }
+
+            foreach ($roles as $role) {
+                if (in_array($role, $user->roles)) {
+                    return;
+                }
+            }
+
+            wp_redirect(home_url());
+            die();
+        }
+    }
+
+    public function theContent($content) {
+        global $post;
+        if (get_post_type() === 'compatibuddy_report') {
+            $user = wp_get_current_user();
+
+            if (is_super_admin($user->ID)) {
+                return $content;
+            }
+
+            $roles = get_post_meta($post->ID, 'compatibuddy_report_user_roles', true);
+
+            if (empty($roles)) {
+                return $content;
+            }
+
+            foreach ($roles as $role) {
+                if (in_array($role, $user->roles)) {
+                    return $content;
+                }
+            }
+
+            return 'You are not allowed to view this content.';
+        }
     }
 
     private function compileReportPostTypeCapabilities($singular = 'post', $plural = 'posts') {
