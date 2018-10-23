@@ -446,10 +446,12 @@ class Admin {
                     $subject = preg_replace('/^plugin\-/', '', $subject, -1, $count);
 
                     if ($count === 1) {
+                        $tabData['subject'] = $plugins[$subject];
                         $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $plugins[$subject]);
                     } else {
                         $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
                         if ($count === 1) {
+                            $tabData['subject'] = $themes[$subject];
                             $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $themes[$subject]);
                         } else {
                             $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));

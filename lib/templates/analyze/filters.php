@@ -13,8 +13,9 @@
                         <option>Select a module to analyze...</option>
                         <option>All modules</option>
                         <optgroup label="Plugins">
-                            <?php foreach ($tabData['plugins'] as $plugin) { ?>
-                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"><?php echo esc_html($plugin['metadata']['Name']) ?><?php echo is_plugin_active($plugin['id']) ? ' (Active)</em>' : ' (Inactive)' ?></option>
+                            <?php foreach ($tabData['plugins'] as $plugin) {
+                                $isSelectedPlugin = (isset($tabData['subject']) && $tabData['subject']['type'] === 'plugin' && $tabData['subject']['id'] === $plugin['id']); ?>
+                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"<?php echo ($isSelectedPlugin ? ' selected' : '') ?>><?php echo esc_html($plugin['metadata']['Name']) ?><?php echo is_plugin_active($plugin['id']) ? ' (Active)</em>' : ' (Inactive)' ?></option>
                             <?php } ?>
                         </optgroup>
                         <optgroup label="Themes">
@@ -24,8 +25,9 @@
                                 $currentTheme = null;
                             }
 
-                            foreach ($tabData['themes'] as $theme) { ?>
-                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"><?php echo esc_html($theme['metadata']['Name']) ?><?php echo ($currentTheme !== null && $currentTheme->get_template() === $theme['id']) ? ' (Active)' : '' ?></option>
+                            foreach ($tabData['themes'] as $theme) {
+                                $isSelectedTheme = (isset($tabData['subject']) && $tabData['subject']['type'] === 'theme' && $tabData['subject']['id'] === $theme['id']); ?>
+                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"<?php echo ($isSelectedTheme ? ' selected' : '') ?>><?php echo esc_html($theme['metadata']['Name']) ?><?php echo ($currentTheme !== null && $currentTheme->get_template() === $theme['id']) ? ' (Active)' : '' ?></option>
                             <?php } ?>
                         </optgroup>
                     </select>
