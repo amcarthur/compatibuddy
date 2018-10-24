@@ -34,7 +34,7 @@ class Environment {
         'lib/Utilities.php',
         'lib/Caches/AddFilterCache.php',
         'lib/Scanners/AddFilterScanner.php',
-        'lib/Analyzers/DuplicateAddFilterAnalyzer.php',
+        'lib/Analyzers/AddFilterAnalyzer.php',
         'lib/Analyzers/HigherPriorityAddFilterAnalyzer.php',
         'lib/Admin.php',
         'lib/Tables/ScanPluginsTable.php',

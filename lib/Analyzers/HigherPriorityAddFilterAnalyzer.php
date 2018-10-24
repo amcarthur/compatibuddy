@@ -4,7 +4,7 @@ namespace Compatibuddy\Analyzers;
 
 require_once('AnalyzerInterface.php');
 
-class HigherPriorityAddFilterAnalyzer extends DuplicateAddFilterAnalyzer {
+class HigherPriorityAddFilterAnalyzer extends AddFilterAnalyzer {
 
     public function analyze($scanResults, $subject = null) {
         $prioritizedFilters = [];

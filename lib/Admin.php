@@ -2,7 +2,7 @@
 
 namespace Compatibuddy;
 
-use Compatibuddy\Analyzers\DuplicateAddFilterAnalyzer;
+use Compatibuddy\Analyzers\AddFilterAnalyzer;
 use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
 use Compatibuddy\Caches\AddFilterCache;
 use Compatibuddy\Scanners\AddFilterScanner;
@@ -41,12 +41,14 @@ class Admin {
         add_action('admin_menu', [$this, 'adminMenu']);
         add_action('add_meta_boxes', [$this, 'addMetaBoxes']);
         add_action('save_post_compatibuddy_report', [$this, 'saveReport'], 10, 3);
+        add_action('media_buttons', [$this, 'mediaButtons']);
 
         if (is_admin()) {
             add_action('wp_ajax_compatibuddy_scan_plugin', [$this, 'ajax_scan_plugin']);
             add_action('wp_ajax_compatibuddy_scan_theme', [$this, 'ajax_scan_theme']);
         }
         add_filter('parent_file', [$this, 'testing_func'], 5);
+        add_filter('parent_file', [$this, 'testing_func'], 15);
     }
 
     public function testing_func() {
@@ -367,6 +369,12 @@ class Admin {
         update_post_meta($post_id, 'compatibuddy_report_user_roles', $newUserRoles);
     }
 
+    public function mediaButtons() {
+        if (get_post_type() === 'compatibuddy_report') {
+            echo '<a href="#" id="compatibuddy-report-insert-visual" class="button">Insert Visual</a>';
+        }
+    }
+
     public function compatibuddyAction() {
         echo $this->templateEngine->render('dashboard', [
             'title' => __('Dashboard', 'compatibuddy')
@@ -422,7 +430,7 @@ class Admin {
         switch ($currentTab) {
             case 'filters':
                 $addFilterScanner = new AddFilterScanner();
-                $duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
+                $duplicateFilterAnalyzer = new AddFilterAnalyzer();
 
                 $tabData['subjectAnalysisUri'] = add_query_arg(
                     [
@@ -509,7 +517,7 @@ class Admin {
         }
 
         $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
-        if (!wp_verify_nonce($nonce, 'compatibuddy-ajax')) {
+        if (!wp_verify_nonce($nonce, 'compatibuddy-admin-ajax')) {
             wp_die();
         }
 
@@ -538,7 +546,7 @@ class Admin {
         }
 
         $nonce = sanitize_key(wp_unslash($_REQUEST['_wpnonce']));
-        if (!wp_verify_nonce($nonce, 'compatibuddy-ajax')) {
+        if (!wp_verify_nonce($nonce, 'compatibuddy-admin-ajax')) {
             wp_die();
         }
 

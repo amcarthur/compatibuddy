@@ -52,12 +52,18 @@ class Core {
         register_uninstall_hook(Environment::getValue(EnvironmentVariable::PLUGIN_FILE), [__CLASS__, 'uninstall']);
 
         add_action('init', [$this, 'init']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueueScripts']);
+        add_action('admin_enqueue_scripts', [$this, 'adminEnqueueScripts']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
         add_action('template_redirect', [$this, 'templateRedirect']);
         add_action('the_content', [$this, 'theContent']);
+        add_filter('random', [$this, 'myRandom']);
 
         $this->admin->setup();
         $this->reports->setup();
+    }
+
+    public function myRandom() {
+
     }
 
     public function activate() {
@@ -160,7 +166,7 @@ class Core {
         }
     }
 
-    public function enqueueScripts($hook) {
+    public function adminEnqueueScripts($hook) {
         $suffix = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '' : '.min';
 
         wp_enqueue_style(
@@ -192,10 +198,36 @@ class Core {
 
         // TODO: add .min
         wp_enqueue_script(
+            'compatibuddy-admin',
+            plugins_url('/assets/js/compatibuddy-admin.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['jquery', 'jstree']
+        );
+
+        wp_localize_script(
+            'compatibuddy-admin',
+            'ajax_object',
+            [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce('compatibuddy-admin-ajax')
+            ]
+        );
+    }
+
+    public function enqueueScripts($hook) {
+        $suffix = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '' : '.min';
+
+        wp_enqueue_script(
+            'Chart',
+            plugins_url('/assets/js/Chart' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE))
+        );
+
+        wp_enqueue_script(
             'compatibuddy',
             plugins_url('/assets/js/compatibuddy.js',
                 Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
-            ['jquery', 'jstree']
+            ['jquery', 'Chart']
         );
 
         wp_localize_script(

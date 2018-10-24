@@ -4,7 +4,7 @@ namespace Compatibuddy\Analyzers;
 
 require_once('AnalyzerInterface.php');
 
-class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
+class AddFilterAnalyzer implements AnalyzerInterface {
 
     public function analyze($scanResults, $subject = null) {
         $flatAddFilterCalls = [];
@@ -23,10 +23,6 @@ class DuplicateAddFilterAnalyzer implements AnalyzerInterface {
         }
 
         $duplicateAddFilterCalls = array_filter($flatAddFilterCalls, function($calls) use($subject) {
-            if (count($calls) < 2) {
-                return false;
-            }
-
             if ($subject !== null) {
                 $moduleFound = false;
                 foreach ($calls as $call) {
