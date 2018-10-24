@@ -70,15 +70,21 @@ var Compatibuddy = (function($) {
 
     me.compileFilterPriorityDatasets = function(calls) {
         var datasets = [];
+        var moduleColors = [];
         for (var index = 0; index < calls.length; ++index) {
             var priority = parseInt(calls[index]["priority"]);
+
+            if (!(calls[index]["module"]["id"] in moduleColors)) {
+                moduleColors[calls[index]["module"]["id"]] = Compatibuddy.getRandomColors(1);
+            }
+
             if (isNaN(priority)) {
                 priority = 10;
             }
 
             datasets.push({
                 label: calls[index]["module"]["metadata"]["Name"],
-                backgroundColor: Compatibuddy.getRandomColors(calls.length),
+                backgroundColor: moduleColors[calls[index]["module"]["id"]],
                 borderColor: "#ffffff",
                 data: [priority]
             });
