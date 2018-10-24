@@ -1,6 +1,6 @@
 var Compatibuddy = (function($) {
     var me = {};
-    me.getRandomColors = function(length) {
+    me._getRandomColors = function(length) {
         var colorMap = {
             aqua: "#00ffff",
             azure: "#f0ffff",
@@ -68,89 +68,108 @@ var Compatibuddy = (function($) {
         return colors;
     };
 
-    me.compileFilterPriorityDatasets = function(calls) {
-        var datasets = [];
-        var moduleColors = [];
+    me._compileFilterPriorityData= function(calls) {
+        var self = this;
+        var data = {
+            labels: [],
+            datasets: []
+        };
+
+        var keyedDatasets = [];
+        var moduleCalls = [];
         for (var index = 0; index < calls.length; ++index) {
-            var priority = parseInt(calls[index]["priority"]);
-
-            if (!(calls[index]["module"]["id"] in moduleColors)) {
-                moduleColors[calls[index]["module"]["id"]] = Compatibuddy.getRandomColors(1);
+            if (!(calls[index]["module"]["id"] in moduleCalls)) {
+                moduleCalls[calls[index]["module"]["id"]] = [];
+                data.labels.push(calls[index]["module"]["metadata"]["Name"]);
             }
-
-            if (isNaN(priority)) {
-                priority = 10;
-            }
-
-            datasets.push({
-                label: calls[index]["module"]["metadata"]["Name"],
-                backgroundColor: moduleColors[calls[index]["module"]["id"]],
-                borderColor: "#ffffff",
-                data: [priority]
-            });
+            moduleCalls[calls[index]["module"]["id"]].push(calls[index]);
         }
 
-        datasets = datasets.sort(function (a, b) {
-            return a.data[0] - b.data[0];
-        });
-
-        return datasets;
-    };
-
-    me.compileModuleDatasets = function(calls) {
-        var datasets = [];
-        var tagColors = [];
-        for (var tag in calls) {
-            if (!calls.hasOwnProperty(tag)) {
+        for (var id in moduleCalls) {
+            if (!moduleCalls.hasOwnProperty(id)) {
                 continue;
             }
 
-            tagColors[tag] = Compatibuddy.getRandomColors(1);
-
-            var moduleCalls = [];
-            for (var index = 0; index < calls[tag].length; ++index) {
-                var priority = parseInt(calls[tag][index]["priority"]);
+            for (var i = 0; i < moduleCalls[id].length; ++i) {
+                var priority = parseInt(moduleCalls[id][i]["priority"]);
                 if (isNaN(priority)) {
                     priority = 10;
                 }
 
-                moduleCalls.push({
-                    module: calls[tag][index]["module"]["metadata"]["Name"],
-                    priority: priority
-                });
-            }
+                if (!(id in keyedDatasets)) {
+                    keyedDatasets[id] = {
+                        backgroundColor: self._getRandomColors(1),
+                        data: [],
+                        datalabels: {
+                            align: 'center',
+                            anchor: 'center'
+                        }
+                    };
+                }
 
-            moduleCalls = moduleCalls.sort(function (a, b) {
-                return a.priority - b.priority;
-            });
-
-            for (var i = 0; i < moduleCalls.length; ++i) {
-                datasets.push({
-                    label: tag,
-                    backgroundColor: tagColors[tag],
-                    borderColor: "#ffffff",
-                    data: [moduleCalls[i].priority]
-                });
+                keyedDatasets[id].data.push(priority);
             }
         }
 
-        return datasets;
+        for (var k in keyedDatasets) {
+            if (!keyedDatasets.hasOwnProperty(k)) {
+                continue;
+            }
+
+            data.datasets.push(keyedDatasets[k]);
+        }
+
+        console.log("unkeyed: ", data);
+
+        return data;
     };
 
-    me.createChart = function(canvasId, type, datasets, yAxesLabel, xAxesLabel) {
+    me.createFilterPrioritiesChart = function(canvasId, type, calls, yAxesLabel, xAxesLabel) {
+        var self = this;
         var ctx = document.getElementById(canvasId).getContext("2d");
-        var chart = new Chart(ctx, {
-            // The type of chart we want to create
-            type: type,
 
-            // The data for our dataset
-            data: {
-                //labels: labels,
-                datasets: datasets
+        Chart.helpers.merge(Chart.defaults.global, {
+            aspectRatio: 4/3,
+            tooltips: false,
+            layout: {
+                padding: {
+                    top: 42,
+                    right: 16,
+                    bottom: 32,
+                    left: 8
+                }
             },
+            elements: {
+                line: {
+                    fill: false
+                },
+                point: {
+                    hoverRadius: 7,
+                    radius: 5
+                }
+            },
+            plugins: {
+                legend: false,
+                title: false
+            }
+        });
 
-            // Configuration options go here
+        var chart = new Chart(ctx, {
+            type: type,
+            data: self._compileFilterPriorityData(calls),
             options: {
+                plugins: {
+                    datalabels: {
+                        color: 'white',
+                        display: function(context) {
+                            return true;
+                        },
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: Math.round
+                    }
+                },
                 scales: {
                     yAxes: [{
                         scaleLabel: {
@@ -158,12 +177,12 @@ var Compatibuddy = (function($) {
                             labelString: yAxesLabel
                         },
                         ticks: {
-                            suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
-                            // OR //
-                            beginAtZero: true   // minimum value will be 0.
+                            suggestedMin: 0,
+                            beginAtZero: true
                         }
                     }],
                     xAxes: [{
+                        type: 'category',
                         scaleLabel: {
                             display: true,
                             labelString: xAxesLabel

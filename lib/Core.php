@@ -224,10 +224,17 @@ class Core {
         );
 
         wp_enqueue_script(
+            'ChartDataLabels',
+            plugins_url('/assets/js/chartjs-plugin-datalabels' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['Chart']
+        );
+
+        wp_enqueue_script(
             'compatibuddy',
             plugins_url('/assets/js/compatibuddy.js',
                 Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
-            ['jquery', 'Chart']
+            ['jquery', 'Chart', 'ChartDataLabels']
         );
 
         wp_localize_script(

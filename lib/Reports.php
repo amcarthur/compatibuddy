@@ -28,8 +28,10 @@ class Reports {
 
     public function setup() {
         add_shortcode('compatibuddy_filter_priorities', [$this, 'renderFilterPriorities']);
+        add_shortcode('compatibuddy_filter', [$this, 'renderFilter']);
+        add_shortcode('compatibuddy_all_filters', [$this, 'renderAllFilters']);
         add_shortcode('compatibuddy_module', [$this, 'renderModule']);
-        //add_shortcode('compatibuddy_module_visual', [$this, 'renderModuleVisual']);
+        add_shortcode('compatibuddy_all_modules', [$this, 'renderAllModule']);
     }
 
     public function renderFilterPriorities($atts) {
@@ -89,73 +91,25 @@ class Reports {
         <script type="text/javascript">                           
             var calls = ' . json_encode($calls) . ';
             var visual = "' . esc_js($visual) . '";
-            var datasets = Compatibuddy.compileFilterPriorityDatasets(calls);
-            Compatibuddy.createChart(' . json_encode($canvasId) . ', visual, datasets, ' . json_encode(__('Priority', 'compatibuddy')) . ', ' . json_encode($tag) . ');
+            Compatibuddy.createFilterPrioritiesChart(' . json_encode($canvasId) . ', visual, calls, ' . json_encode(__('Priority', 'compatibuddy')) . ', ' . json_encode($tag) . ');
             
         </script>
 ';
     }
 
+    public function renderFilter($atts) {
+
+    }
+
+    public function renderAllFilters($atts) {
+
+    }
+
     public function renderModule($atts) {
-        $a = shortcode_atts([
-            'module' => false,
-            'type' => 'plugin',
-            'visual' => 'bar',
-        ], $atts);
 
-        if ($a['module'] === false) {
-            return '<p>No module specified.</p>';
-        }
+    }
 
-        $module = sanitize_text_field($a['module']);
-        $type = sanitize_text_field($a['type']);
-        $visual = sanitize_text_field($a['visual']);
+    public function renderAllModules($atts) {
 
-        if (!in_array($type, ['plugin', 'theme'])) {
-            return '<p>Invalid module type specified.</p>';
-        }
-
-        if (!in_array($visual, ['bar', 'line', 'pie'])) {
-            return '<p>Invalid visual specified.</p>';
-        }
-
-        $plugins = Utilities::getPlugins();
-        $themes = Utilities::getThemes();
-        $modules = array_merge($plugins, $themes);
-
-        if ($type === 'plugin') {
-            if (!isset($plugins[$module])) {
-                return '<p>Plugin not found.</p>';
-            }
-
-            $subject = $plugins[$module];
-        } else {
-            if (!isset($themes[$module])) {
-                return '<p>Theme not found.</p>';
-            }
-
-            $subject = $themes[$module];
-        }
-
-        $filterScanner = new AddFilterScanner();
-        $analyzer = new AddFilterAnalyzer();
-        $analysis = $analyzer->analyze($filterScanner->scan([$subject], true), $subject);
-
-        if (empty($analysis)) {
-            return '<p>Nothing found for the module "' . esc_html($module) . '".</p>';
-        }
-
-        $canvasId = 'compatibuddy-filter-report-' . uniqid();
-
-        return '
-        <canvas id="' . esc_attr($canvasId) . '"></canvas>
-        <script type="text/javascript">                           
-            var calls = ' . json_encode($analysis) . ';
-            var visual = "' . esc_js($visual) . '";
-            var datasets = Compatibuddy.compileModuleDatasets(calls);
-            Compatibuddy.createChart(' . json_encode($canvasId) . ', visual, datasets, ' . json_encode(__('Priority', 'compatibuddy')) . ', ' . json_encode($subject['metadata']['Name']) . ');
-            
-        </script>
-';
     }
 }
