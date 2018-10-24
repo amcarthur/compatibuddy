@@ -59,10 +59,21 @@ class Reports {
 
         $tag = sanitize_text_field($a['tag']);
         if (!isset($analysis[$tag])) {
-            if (!strpos($tag, '\'')) {
-                $tag = '\'' . $tag . '\'';
-                if (!isset($analysis[$tag])) {
-                    return '<p>Nothing found for the tag "' . esc_html($a['tag']) . '".</p>';
+            if (!strpos($tag, '\'') && !strpos($tag, '"')) {
+
+                $singleQuotedTag = '\'' . $tag . '\'';
+
+                if (!isset($analysis[$singleQuotedTag])) {
+
+                    $doubleQuotedTag = '"' . $tag . '"';
+
+                    if (!isset($analysis[$doubleQuotedTag])) {
+                        return '<p>Nothing found for the tag "' . esc_html($a['tag']) . '".</p>';
+                    }
+
+                    $tag = $doubleQuotedTag;
+                } else {
+                    $tag = $singleQuotedTag;
                 }
             } else {
                 return '<p>Nothing found for the tag "' . esc_html($a['tag']) . '".</p>';
