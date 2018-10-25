@@ -2,10 +2,11 @@
 
 namespace Compatibuddy;
 
-use Compatibuddy\Analyzers\AddFilterAnalyzer;
-use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
-use Compatibuddy\Caches\AddFilterCache;
-use Compatibuddy\Scanners\AddFilterScanner;
+use Compatibuddy\Analyzers\FilterCallsAnalyzer;
+use Compatibuddy\Analyzers\ModuleAddFilterCallsAnalyzer;
+use Compatibuddy\Analyzers\PrioritizedFilterCallsAnalyzer;
+use Compatibuddy\Caches\ModuleCache;
+use Compatibuddy\Scanners\ModuleScanner;
 use Compatibuddy\Tables\ScanPluginsTable;
 use Compatibuddy\Tables\ScanThemesTable;
 
@@ -91,7 +92,7 @@ class Admin {
                 $plugins = Utilities::getPlugins();
                 $themes = Utilities::getThemes();
                 $modules = array_merge($plugins, $themes);
-                $addFilterScanner = new AddFilterScanner();
+                $addFilterScanner = new ModuleScanner();
                 //$duplicateFilterAnalyzer = new DuplicateAddFilterAnalyzer();
                 $scan = $addFilterScanner->scan($modules, true);
                 $encoded = json_encode($scan);
@@ -426,11 +427,15 @@ class Admin {
             $scan = json_decode($contents, true);
         }
 
-        $tabData = [];
+        $tabData = [
+            'plugins' => $plugins,
+            'themes' => $themes
+        ];
+
+        $addFilterScanner = new ModuleScanner();
+
         switch ($currentTab) {
             case 'filters':
-                $addFilterScanner = new AddFilterScanner();
-                $duplicateFilterAnalyzer = new AddFilterAnalyzer();
 
                 $tabData['subjectAnalysisUri'] = add_query_arg(
                     [
@@ -438,9 +443,6 @@ class Admin {
                         'action' => 'analyze-subject'
                     ], admin_url('admin.php?page=compatibuddy-analyze')
                 );
-
-                $tabData['plugins'] = $plugins;
-                $tabData['themes'] = $themes;
 
                 if (isset($_REQUEST['action'])
                     && $_REQUEST['action'] === 'analyze-subject'
@@ -455,19 +457,22 @@ class Admin {
 
                     if ($count === 1) {
                         $tabData['subject'] = $plugins[$subject];
-                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $plugins[$subject]);
+                        $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true), null, [$plugins[$subject]]);
+                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
                     } else {
                         $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
                         if ($count === 1) {
                             $tabData['subject'] = $themes[$subject];
-                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true), $themes[$subject]);
+                            $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true), null, [$themes[$subject]]);
+                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
                         } else {
-                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                            $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
                         }
                     }
                 } else {
-
-                    $tabData['analysis'] = $duplicateFilterAnalyzer->analyze($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                    $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
+                    $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
                 }
 
                 break;
@@ -483,9 +488,9 @@ class Admin {
                         // TODO: Display error message
                         break;
                     }
-                    $addFilterScanner = new AddFilterScanner();
-                    $higherPriorityFilterAnalyzer = new HigherPriorityAddFilterAnalyzer();
-                    $analysis = $higherPriorityFilterAnalyzer->analyze($addFilterScanner->scan($modules, true), $plugins[$subjectId]);
+
+                    $prioritizedFilterAnalyzer = new PrioritizedFilterCallsAnalyzer($addFilterScanner->scan($modules, true), null, [$plugins[$subjectId]]);
+                    $analysis = $prioritizedFilterAnalyzer->analyze();
                     if (empty($analysis)) {
                         // TODO: Display message
                         break;
@@ -527,7 +532,7 @@ class Admin {
             wp_die();
         }
 
-        $addFilterScanner = new AddFilterScanner();
+        $addFilterScanner = new ModuleScanner();
 
         $plugin = $plugins[$_REQUEST['plugin']];
         $cached = $addFilterScanner->getCache()->get($_REQUEST['plugin']);
@@ -556,7 +561,7 @@ class Admin {
             wp_die();
         }
 
-        $addFilterScanner = new AddFilterScanner();
+        $addFilterScanner = new ModuleScanner();
 
         $theme = $themes[$_REQUEST['theme']];
         $cached = $addFilterScanner->getCache()->get($_REQUEST['theme']);

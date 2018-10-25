@@ -2,8 +2,8 @@
 
 namespace Compatibuddy\Tables;
 
-use Compatibuddy\Analyzers\HigherPriorityAddFilterAnalyzer;
-use Compatibuddy\Scanners\AddFilterScanner;
+use Compatibuddy\Analyzers\HigherPriorityAddFilterCallsAnalyzer;
+use Compatibuddy\Scanners\ModuleScanner;
 use Compatibuddy\Utilities;
 
 if( ! class_exists( 'WP_List_Table' ) ) {
@@ -62,7 +62,7 @@ class ScanThemesTable extends \WP_List_Table {
         $themes = Utilities::getThemes();
         $this->handle_actions($themes);
 
-        $addFilterScanner = new AddFilterScanner();
+        $addFilterScanner = new ModuleScanner();
         $addFilterScanResults = $addFilterScanner->scan($themes, true);
 
         $searchKey = isset($_REQUEST['s']) ? strtolower(wp_unslash(trim($_REQUEST['s']))) : '';
@@ -203,7 +203,7 @@ class ScanThemesTable extends \WP_List_Table {
 
         $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : $_REQUEST['action2'];
 
-        $addFilterScanner = new AddFilterScanner();
+        $addFilterScanner = new ModuleScanner();
 
         if ($action === 'bulk-scan-selected') {
             if (!isset($_REQUEST['themes']) || empty($_REQUEST['themes'])) {

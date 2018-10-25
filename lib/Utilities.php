@@ -153,4 +153,159 @@ class Utilities {
 
         return $functionCalls;
     }
+
+    public static function mapScanResultsToCallTree($scanResults, $includedFunctions = null, $includedTags = null, $includedModules = null) {
+        $callTree = [];
+
+        $supportedFunctions = [
+            'add_filter',
+            'remove_filter',
+            'remove_all_filters',
+            'add_action',
+            'remove_action',
+            'remove_all_actions'
+        ];
+
+        if ($includedFunctions === null) {
+            $includedFunctions = $supportedFunctions;
+        }
+
+        foreach ($scanResults as $moduleId => $module) {
+
+            $includeCurrentModule = false;
+            if ($includedModules !== null) {
+
+                foreach ($includedModules as $includedModule) {
+
+                    if ($includedModule['type'] === $module['module']['type'] && $includedModule['id'] === $moduleId) {
+                        $includeCurrentModule = true;
+                        break;
+                    }
+                }
+            } else {
+                $includeCurrentModule = true;
+            }
+
+            if (!$includeCurrentModule) {
+                continue;
+            }
+
+            foreach ($includedFunctions as $functionName) {
+
+                if (!in_array($functionName, $supportedFunctions)) {
+                    continue;
+                }
+
+                if (!isset($module["${functionName}_calls"])) {
+                    continue;
+                }
+
+                foreach ($module["${functionName}_calls"] as $calls) {
+                    foreach ($calls as $tag => $call) {
+
+                        $includeCurrentTag = false;
+                        if ($includedTags !== null) {
+
+                            foreach ($includedTags as $includedTag) {
+                                if ($includedTag === $tag) {
+                                    $includeCurrentTag = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            $includeCurrentTag = true;
+                        }
+
+                        if (!$includeCurrentTag) {
+                            continue;
+                        }
+
+                        if (isset($callTree[$tag]["${functionName}_calls"])) {
+                            $callTree[$tag]["${functionName}_calls"] = array_merge($callTree[$tag]["${functionName}_calls"], $call);
+                        } else {
+                            $callTree[$tag]["${functionName}_calls"] = $call;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $callTree;
+    }
+
+    public static function mapScanResultsToModuleCallTree($scanResults, $includedFunctions = null, $includedModules = null, $includedTags = null) {
+        $callTree = [];
+
+        $supportedFunctions = [
+            'add_filter',
+            'remove_filter',
+            'remove_all_filters',
+            'add_action',
+            'remove_action',
+            'remove_all_actions'
+        ];
+
+        if ($includedFunctions === null) {
+            $includedFunctions = $supportedFunctions;
+        }
+
+        foreach ($scanResults as $moduleId => $module) {
+
+            if ($includedModules !== null) {
+                $includeCurrentModule = false;
+                foreach ($includedModules as $includedModule) {
+
+                    if ($includedModule['type'] === $module['module']['type'] && $includedModule['id'] === $moduleId) {
+                        $includeCurrentModule = true;
+                        break;
+                    }
+                }
+
+                if (!$includeCurrentModule) {
+                    continue;
+                }
+            }
+
+            foreach ($includedFunctions as $functionName) {
+
+                if (!in_array($functionName, $supportedFunctions)) {
+                    continue;
+                }
+
+                if (!isset($module["${functionName}_calls"])) {
+                    continue;
+                }
+
+                foreach ($module["${functionName}_calls"] as $calls) {
+                    foreach ($calls as $tag => $call) {
+
+                        $includeCurrentTag = false;
+                        if ($includedTags !== null) {
+
+                            foreach ($includedTags as $includedTag) {
+                                if ($includedTag === $tag) {
+                                    $includeCurrentTag = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            $includeCurrentTag = true;
+                        }
+
+                        if (!$includeCurrentTag) {
+                            continue;
+                        }
+
+                        if (isset($callTree[$moduleId][$tag]["${functionName}_calls"])) {
+                            $callTree[$moduleId][$tag]["${functionName}_calls"] = array_merge($callTree[$moduleId][$tag]["${functionName}_calls"], $call);
+                        } else {
+                            $callTree[$moduleId][$tag]["${functionName}_calls"] = $call;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $callTree;
+    }
 }

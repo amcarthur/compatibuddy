@@ -9,7 +9,7 @@ use DateTime;
 use DateTimeZone;
 
 
-class AddFilterCache implements CacheInterface {
+class ModuleCache implements CacheInterface {
 
     protected $table;
     protected $map;
@@ -17,7 +17,7 @@ class AddFilterCache implements CacheInterface {
     public function __construct() {
         global $wpdb;
 
-        $this->table = $wpdb->prefix . Database::ADD_FILTER_CACHE_TABLE;
+        $this->table = $wpdb->prefix . Database::MODULE_CACHE_TABLE;
     }
 
     public function get($key = null) {

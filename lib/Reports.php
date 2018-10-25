@@ -19,8 +19,8 @@
 
 namespace Compatibuddy;
 
-use Compatibuddy\Analyzers\AddFilterAnalyzer;
-use Compatibuddy\Scanners\AddFilterScanner;
+use Compatibuddy\Analyzers\FilterCallsAnalyzer;
+use Compatibuddy\Scanners\ModuleScanner;
 
 class Reports {
     public function __construct() {
@@ -51,9 +51,9 @@ class Reports {
         }
 
         $modules = Utilities::getModules();
-        $filterScanner = new AddFilterScanner();
-        $analyzer = new AddFilterAnalyzer();
-        $analysis = $analyzer->analyze($filterScanner->scan($modules, true));
+        $filterScanner = new ModuleScanner();
+        $analyzer = new FilterCallsAnalyzer($filterScanner->scan($modules, true));
+        $analysis = $analyzer->analyze();
 
         if (empty($analysis)) {
             return '<p>Nothing found for the tag "' . esc_html($a['tag']) . '".</p>';

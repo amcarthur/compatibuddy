@@ -4,18 +4,17 @@ namespace Compatibuddy\Analyzers;
 
 require_once('AnalyzerInterface.php');
 
-class HigherPriorityAddFilterAnalyzer extends AddFilterAnalyzer {
+class PrioritizedFilterCallsAnalyzer extends FilterCallsAnalyzer {
 
-    public function analyze($scanResults, $subject = null) {
-        $prioritizedFilters = [];
+    public function __construct($scanResults, $includedTags = null, $includedModules = null) {
+        parent::__construct($scanResults, $includedTags, $includedModules);
+    }
 
-        if ($subject === null) {
-            return $prioritizedFilters;
-        }
+    public function analyze() {
+        $prioritizedAddFilterCalls = [];
+        $addFilterCalls = parent::analyze();
 
-        $duplicateAddFilters = parent::analyze($scanResults, $subject);
-
-        foreach ($duplicateAddFilters as $tag => $calls) {
+        foreach ($addFilterCalls as $tag => $calls) {
 
             usort($calls, function($a, $b) {
                 $aHasPriority = self::tryParsePriority($a);
@@ -40,16 +39,10 @@ class HigherPriorityAddFilterAnalyzer extends AddFilterAnalyzer {
                 return ($a['priority'] > $b['priority']) ? -1 : 1;
             });
 
-            foreach ($calls as &$call) {
-                if ($call['module']['id'] === $subject['id']) {
-                    $call['subject'] = true;
-                }
-            }
-
-            $prioritizedFilters[$tag] = $calls;
+            $prioritizedAddFilterCalls[$tag] = $calls;
         }
 
-        return $prioritizedFilters;
+        return $prioritizedAddFilterCalls;
     }
 
     private function tryParsePriority(&$call) {

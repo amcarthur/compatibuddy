@@ -47,6 +47,9 @@
                     "root": {
                         "icon" : "dashicons dashicons-image-filter"
                     },
+                    "function_name": {
+                        "icon" : "dashicons dashicons-image-filter"
+                    },
                     "plugin": {
                         "icon" : "dashicons dashicons-editor-code"
                     },
