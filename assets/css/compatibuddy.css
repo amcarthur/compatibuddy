@@ -67,3 +67,8 @@
     flex: 0 0 auto;
     margin-left: 20px;
 }
+
+.jstree-anchor:not([href*="#"]) {
+    color: #0073aa;
+    text-decoration: underline;
+}

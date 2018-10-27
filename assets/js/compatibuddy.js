@@ -249,7 +249,7 @@ var Compatibuddy = (function($) {
                         "icon" : "dashicons dashicons-editor-ol"
                     },
                     "edit": {
-                        "icon" : "dashicons dashicons-edit"
+                        "icon" : "dashicons dashicons-external"
                     },
                     "default" : {
                     }
