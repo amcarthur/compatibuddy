@@ -216,6 +216,35 @@ class Core {
                 'ajax_nonce' => wp_create_nonce('compatibuddy-admin-ajax')
             ]
         );
+
+        wp_enqueue_script(
+            'Chart',
+            plugins_url('/assets/js/Chart' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE))
+        );
+
+        wp_enqueue_script(
+            'ChartDataLabels',
+            plugins_url('/assets/js/chartjs-plugin-datalabels' . $suffix . '.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['Chart']
+        );
+
+        wp_enqueue_script(
+            'compatibuddy',
+            plugins_url('/assets/js/compatibuddy.js',
+                Environment::getValue(EnvironmentVariable::PLUGIN_FILE)),
+            ['jquery', 'Chart', 'ChartDataLabels']
+        );
+
+        wp_localize_script(
+            'compatibuddy',
+            'ajax_object',
+            [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce('compatibuddy-ajax')
+            ]
+        );
     }
 
     public function enqueueScripts($hook) {
