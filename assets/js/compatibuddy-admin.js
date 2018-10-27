@@ -121,7 +121,7 @@
 
                             return orderBy === 'asc' ? valueA.localeCompare(valueB) : valueA.localeCompare(valueB) * -1;
                         case 'module-type':
-                            if (nodeA.parents.length !== 2) {
+                            if (nodeA.parents.length !== 3) {
                                 break;
                             }
 
@@ -143,7 +143,7 @@
 
                             break;
                         case 'module-name':
-                            if (nodeA.parents.length !== 2) {
+                            if (nodeA.parents.length !== 3) {
                                 break;
                             }
 
@@ -162,7 +162,7 @@
 
                             return orderBy === 'asc' ? valueA.localeCompare(valueB) : valueA.localeCompare(valueB) * -1;
                         case 'function-to-add':
-                            if (nodeA.parents.length !== 2) {
+                            if (nodeA.parents.length !== 3) {
                                 break;
                             }
 
@@ -201,7 +201,7 @@
 
                             return orderBy === 'asc' ? valueA.localeCompare(valueB) : valueA.localeCompare(valueB) * -1;
                         case 'priority':
-                            if (nodeA.parents.length !== 2) {
+                            if (nodeA.parents.length !== 3) {
                                 break;
                             }
 
@@ -264,7 +264,7 @@
 
                             return parseInt(valueA) > parseInt(valueB) ? (orderBy === 'asc' ? -1 : 1) : (orderBy === 'asc' ? 1 : -1);
                         case 'file':
-                            if (nodeA.parents.length !== 2) {
+                            if (nodeA.parents.length !== 3) {
                                 break;
                             }
 
@@ -348,9 +348,10 @@
                     .each(function (index, value) {
                         var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
-                        if (lvl === 2 && node.text.startsWith('Plugin')) {
+                        if (lvl === 3 && node.text.startsWith('Plugin')) {
                             $filtersTree.jstree(true).hide_node(node, true);
                             var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
+                            var root = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(parent));
                             var allHidden = true;
                             $.each(parent.children, function(c_i, c_v) {
                                 var childNode = $filtersTree.jstree(true).get_node(c_v);
@@ -360,7 +361,7 @@
                             });
 
                             if (allHidden) {
-                                $filtersTree.jstree(true).hide_node(parent, true);
+                                $filtersTree.jstree(true).hide_node(root, true);
                             }
                         }
                     });
@@ -371,10 +372,11 @@
                     .each(function (index, value) {
                         var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
-                        if (lvl === 2 && node.text.startsWith('Plugin')) {
+                        if (lvl === 3 && node.text.startsWith('Plugin')) {
                             $filtersTree.jstree(true).show_node(node, true);
                             var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
-                            $filtersTree.jstree(true).show_node(parent, true);
+                            var root = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(parent));
+                            $filtersTree.jstree(true).show_node(root, true);
                         }
                     });
             }
@@ -404,9 +406,10 @@
                     .each(function (index, value) {
                         var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
-                        if (lvl === 2 && node.text.startsWith('Theme')) {
+                        if (lvl === 3 && node.text.startsWith('Theme')) {
                             $filtersTree.jstree(true).hide_node(node, true);
                             var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
+                            var root = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(parent));
                             var allHidden = true;
                             $.each(parent.children, function(c_i, c_v) {
                                 var childNode = $filtersTree.jstree(true).get_node(c_v);
@@ -416,7 +419,7 @@
                             });
 
                             if (allHidden) {
-                                $filtersTree.jstree(true).hide_node(parent, true);
+                                $filtersTree.jstree(true).hide_node(root, true);
                             }
                         }
                     });
@@ -427,10 +430,11 @@
                     .each(function (index, value) {
                         var node = $filtersTree.jstree(true).get_node(this.id);
                         var lvl = node.parents.length;
-                        if (lvl === 2 && node.text.startsWith('Theme')) {
+                        if (lvl === 3 && node.text.startsWith('Theme')) {
                             $filtersTree.jstree(true).show_node(node, true);
                             var parent = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(node));
-                            $filtersTree.jstree(true).show_node(parent, true);
+                            var root = $filtersTree.jstree(true).get_node($filtersTree.jstree(true).get_parent(parent));
+                            $filtersTree.jstree(true).show_node(root, true);
                         }
                     });
             }
@@ -480,7 +484,7 @@
                         .each(function (index, value) {
                             var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
-                            if (lvl === 1) {
+                            if (lvl === 2) {
                                 $filtersTree.jstree(true).sort(node, true);
                                 $filtersTree.jstree(true).redraw_node(node, true);
                             }
@@ -493,7 +497,7 @@
                         .each(function (index, value) {
                             var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
-                            if (lvl === 1) {
+                            if (lvl === 2) {
                                 $filtersTree.jstree(true).sort(node, true);
                                 $filtersTree.jstree(true).redraw_node(node, true);
                             }
@@ -506,7 +510,7 @@
                         .each(function (index, value) {
                             var node = $filtersTree.jstree(true).get_node(this.id);
                             var lvl = node.parents.length;
-                            if (lvl === 1) {
+                            if (lvl === 2) {
                                 $filtersTree.jstree(true).sort(node, true);
                                 $filtersTree.jstree(true).redraw_node(node, true);
                             }

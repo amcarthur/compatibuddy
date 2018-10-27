@@ -19,6 +19,9 @@
 
 namespace Compatibuddy;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
 /**
  * Defines core functionality.
  * @package Compatibuddy
@@ -122,6 +125,7 @@ class Core {
     public static function uninstall() {
         Database::dropSchema();
         delete_option('compatibuddy_options');
+        Utilities::deleteDirectory(Environment::getValue(EnvironmentVariable::TMP_DIRECTORY));
     }
 
     public function init() {

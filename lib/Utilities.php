@@ -10,6 +10,8 @@ use \PhpParser\PrettyPrinter;
 use \PhpParser\Node\Expr\FuncCall;
 use \PhpParser\Node\Expr\MethodCall;
 use \PhpParser\Node\Expr\StaticCall;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * Defines common searcher functionality.
@@ -307,5 +309,22 @@ class Utilities {
         }
 
         return $callTree;
+    }
+
+    public static function deleteDirectory($directory) {
+        $it = new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS);
+
+        $files = new RecursiveIteratorIterator($it,
+            RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach($files as $file) {
+            if ($file->isDir()){
+                rmdir($file->getRealPath());
+            } else {
+                unlink($file->getRealPath());
+            }
+        }
+
+        rmdir($directory);
     }
 }

@@ -411,70 +411,11 @@ class Admin {
         $currentTab = (isset($_REQUEST['tab']) && $_REQUEST['tab'] === 'higherPriorityFilters')
             ? 'higherPriorityFilters' : 'filters';
 
-        $plugins = Utilities::getPlugins();
-        $themes = Utilities::getThemes();
-        $modules = array_merge($plugins, $themes);
-
-        $scan = null;
-        if (isset($_FILES['importfile'])
-            && isset($_REQUEST['_wpnonce'])
-            && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])), 'compatibuddy-filter-import')) {
-            //array_map('unlink', array_filter((array) glob(Environment::getValue(EnvironmentVariable::TMP_DIRECTORY))));
-            $contents = file_get_contents($_FILES['importfile']['tmp_name']);
-
-            $import_file_name = uniqid() . '.json';
-            move_uploaded_file($_FILES['importfile']['tmp_name'], Environment::getValue(EnvironmentVariable::TMP_DIRECTORY) . '/' . $import_file_name);
-            $scan = json_decode($contents, true);
-        }
-
-        $tabData = [
-            'plugins' => $plugins,
-            'themes' => $themes
-        ];
-
-        $addFilterScanner = new ModuleScanner();
+        $tabData = [];
 
         switch ($currentTab) {
             case 'filters':
-
-                $tabData['subjectAnalysisUri'] = add_query_arg(
-                    [
-                        'tab' => 'filters',
-                        'action' => 'analyze-subject'
-                    ], admin_url('admin.php?page=compatibuddy-analyze')
-                );
-
-                if (isset($_REQUEST['action'])
-                    && $_REQUEST['action'] === 'analyze-subject'
-                    && isset($_REQUEST['subject'])
-                    && isset($_REQUEST['_wpnonce'])
-                    && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])),
-                        'compatibuddy-filter-analyze-subject')) {
-
-                    $subject = $_REQUEST['subject'];
-                    $count = 0;
-                    $subject = preg_replace('/^plugin\-/', '', $subject, -1, $count);
-
-                    if ($count === 1) {
-                        $tabData['subject'] = $plugins[$subject];
-                        $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true), null, [$plugins[$subject]]);
-                        $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
-                    } else {
-                        $subject = preg_replace('/^theme\-/', '', $subject, -1, $count);
-                        if ($count === 1) {
-                            $tabData['subject'] = $themes[$subject];
-                            $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true), null, [$themes[$subject]]);
-                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
-                        } else {
-                            $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
-                            $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
-                        }
-                    }
-                } else {
-                    $duplicateFilterAnalyzer = new FilterCallsAnalyzer($scan !== null ? $scan : $addFilterScanner->scan($modules, true));
-                    $tabData['analysis'] = $duplicateFilterAnalyzer->analyze();
-                }
-
+                $this->handleFiltersTabAction($tabData);
                 break;
             case 'higherPriorityFilters':
 
@@ -508,6 +449,72 @@ class Admin {
             'higherPriorityFiltersUri' => add_query_arg(['tab' => 'higherPriorityFilters'], admin_url('admin.php?page=compatibuddy-analyze')),
             'tabData' => $tabData
         ]);
+    }
+
+    private function handleFiltersTabAction(&$tabData) {
+
+        $plugins = Utilities::getPlugins();
+        $themes = Utilities::getThemes();
+        $modules = array_merge($plugins, $themes);
+
+        $tabData['plugins'] = $plugins;
+        $tabData['themes'] = $themes;
+        $tabData['subjectAnalysisUri'] = add_query_arg(
+            [
+                'tab' => 'filters',
+                'action' => 'analyze-subject'
+            ], admin_url('admin.php?page=compatibuddy-analyze')
+        );
+
+        if (isset($_FILES['importfile'])
+            && isset($_REQUEST['_wpnonce'])
+            && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])), 'compatibuddy-filter-import')) {
+            $contents = file_get_contents($_FILES['importfile']['tmp_name']);
+
+            $import_file_name = uniqid() . '.json';
+            move_uploaded_file($_FILES['importfile']['tmp_name'], Environment::getValue(EnvironmentVariable::TMP_DIRECTORY) . '/' . $import_file_name);
+            $scan = json_decode($contents, true);
+
+            $filterAnalyzer = new FilterCallsAnalyzer($scan);
+            $tabData['analysis'] = $filterAnalyzer->analyze();
+            return;
+        }
+
+        $addFilterScanner = new ModuleScanner();
+
+        if (isset($_REQUEST['action'])
+            && $_REQUEST['action'] === 'analyze-subject'
+            && isset($_REQUEST['subject'])
+            && isset($_REQUEST['_wpnonce'])
+            && wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST['_wpnonce'])),
+                'compatibuddy-filter-analyze-subject')) {
+
+            $subject = $_REQUEST['subject'];
+            $count = 0;
+            $subject = preg_replace('/^compatibuddy_plugin\-/', '', $subject, 1, $count);
+
+            if ($count === 1) {
+                $tabData['subject'] = $plugins[$subject];
+                $filterAnalyzer = new FilterCallsAnalyzer($addFilterScanner->scan($modules, true), null, [$plugins[$subject]]);
+                $tabData['analysis'] = $filterAnalyzer->analyze();
+                return;
+            }
+
+            $subject = preg_replace('/^compatibuddy_theme\-/', '', $subject, 1, $count);
+            if ($count === 1) {
+                $tabData['subject'] = $themes[$subject];
+                $filterAnalyzer = new FilterCallsAnalyzer($addFilterScanner->scan($modules, true), null, [$themes[$subject]]);
+                $tabData['analysis'] = $filterAnalyzer->analyze();
+                return;
+            }
+        }
+
+        $filterAnalyzer = new FilterCallsAnalyzer($addFilterScanner->scan($modules, true));
+        $tabData['analysis'] = $filterAnalyzer->analyze();
+    }
+
+    private function handleActionsTabAction() {
+
     }
 
     public function compatibuddySettingsAction() {

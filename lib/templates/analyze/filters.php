@@ -2,7 +2,18 @@
 /**
 * @var array $tabData
  */
-echo '<pre>' . print_r($tabData['analysis'], true) . '</pre>';die();
+function getFunctionNameKeyValue($functionNameKey) {
+    switch ($functionNameKey) {
+        case 'add_filter_calls':
+            return 'add_filter Calls';
+        case 'remove_filter_calls':
+            return 'remove_filter Calls';
+        case 'remove_all_filters_calls':
+            return 'remove_all_filters Calls';
+        default:
+            return '';
+    }
+}
 ?>
 <div class="compatibuddy-tree-top">
     <div class="compatibuddy-tree-top-item">
@@ -16,7 +27,7 @@ echo '<pre>' . print_r($tabData['analysis'], true) . '</pre>';die();
                         <optgroup label="Plugins">
                             <?php foreach ($tabData['plugins'] as $plugin) {
                                 $isSelectedPlugin = (isset($tabData['subject']) && $tabData['subject']['type'] === 'plugin' && $tabData['subject']['id'] === $plugin['id']); ?>
-                                <option value="plugin-<?php echo esc_attr($plugin['id']) ?>"<?php echo ($isSelectedPlugin ? ' selected' : '') ?>><?php echo esc_html($plugin['metadata']['Name']) ?><?php echo is_plugin_active($plugin['id']) ? ' (Active)</em>' : ' (Inactive)' ?></option>
+                                <option value="compatibuddy_plugin-<?php echo esc_attr($plugin['id']) ?>"<?php echo ($isSelectedPlugin ? ' selected' : '') ?>><?php echo esc_html($plugin['metadata']['Name']) ?><?php echo is_plugin_active($plugin['id']) ? ' (Active)</em>' : ' (Inactive)' ?></option>
                             <?php } ?>
                         </optgroup>
                         <optgroup label="Themes">
@@ -28,7 +39,7 @@ echo '<pre>' . print_r($tabData['analysis'], true) . '</pre>';die();
 
                             foreach ($tabData['themes'] as $theme) {
                                 $isSelectedTheme = (isset($tabData['subject']) && $tabData['subject']['type'] === 'theme' && $tabData['subject']['id'] === $theme['id']); ?>
-                                <option value="theme-<?php echo esc_attr($theme['id']) ?>"<?php echo ($isSelectedTheme ? ' selected' : '') ?>><?php echo esc_html($theme['metadata']['Name']) ?><?php echo ($currentTheme !== null && $currentTheme->get_template() === $theme['id']) ? ' (Active)' : '' ?></option>
+                                <option value="compatibuddy_theme-<?php echo esc_attr($theme['id']) ?>"<?php echo ($isSelectedTheme ? ' selected' : '') ?>><?php echo esc_html($theme['metadata']['Name']) ?><?php echo ($currentTheme !== null && $currentTheme->get_template() === $theme['id']) ? ' (Active)' : '' ?></option>
                             <?php } ?>
                         </optgroup>
                     </select>
@@ -115,11 +126,11 @@ echo '<pre>' . print_r($tabData['analysis'], true) . '</pre>';die();
 </div>
 <div id="compatibuddy-duplicate-filters-tree" class="compatibuddy-tree">
     <ul>
-        <?php foreach ($tabData['analysis'] as $tag => $functionNames) { ?>
+        <?php foreach ($tabData['analysis'] as $tag => $functionNameKeys) { ?>
             <li data-jstree='{"type": "root"}'>Tag: <strong><?php echo esc_html($tag) ?></strong>
                 <ul>
-                    <?php foreach ($functionNames as $functionName => $calls) { ?>
-                        <li data-jstree='{"type": "function_name"}'>Function Name: <strong><?php echo esc_html($functionName) ?></strong>
+                    <?php foreach ($functionNameKeys as $functionNameKey => $calls) { ?>
+                        <li data-jstree='{"type": "function_name"}'><strong><?php echo esc_html(getFunctionNameKeyValue($functionNameKey)) ?></strong>
                             <ul>
                                 <?php foreach ($calls as $call) { $moduleType = $call['module']['type']; $isPlugin = $moduleType === 'plugin'; ?>
                                     <li data-jstree='{"type": "<?php echo $moduleType ?>"}'><?php echo esc_html(ucfirst($moduleType)) ?>: <strong><?php echo esc_html($call['module']['metadata']['Name']) ?></strong>
